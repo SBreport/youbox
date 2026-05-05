@@ -8,73 +8,202 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/nav.css">
-<link rel="stylesheet" href="css/study.css">
+<link rel="stylesheet" href="css/dictionary.css">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 </head>
 <body>
 
 <div class="header">
-  <h1>🧱 구조 사전</h1>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <h1>🧱 구조 사전</h1>
+    <span id="dictTotalCount"></span>
+  </div>
   <div class="header-actions">
-    <a href="shortform-study.html" class="btn btn-secondary" style="text-decoration:none;font-size:12px;">+ 끝내기 추가</a>
+    <button class="btn btn-secondary" id="dictExportBtn" title="ZIP으로 내보내기">📤 내보내기</button>
+    <button class="btn btn-secondary" id="dictImportBtn" title="ZIP 불러오기">📥 불러오기</button>
+    <input type="file" id="dictImportFile" accept=".zip" style="display:none">
     <button class="theme-toggle" id="themeToggle" title="테마 전환">
       <span id="themeIcon">&#9788;</span>
     </button>
   </div>
 </div>
 
-<div style="max-width:760px;margin:0 auto;padding:24px 20px 80px;">
+<div class="dict-layout">
+  <!-- 사이드바 -->
+  <aside class="dict-sidebar" id="dictSidebar">
+    <div class="dict-sidebar-section">
+      <div class="dict-nav-item active" data-filter="all">
+        <span class="dict-nav-icon">📋</span>
+        <span class="dict-nav-label">전체</span>
+        <span class="dict-nav-count" id="navCount_all">0</span>
+      </div>
+      <div class="dict-nav-item" data-filter="favorite">
+        <span class="dict-nav-icon">⭐</span>
+        <span class="dict-nav-label">즐겨찾기</span>
+        <span class="dict-nav-count" id="navCount_favorite">0</span>
+      </div>
+    </div>
 
-  <div class="dict-category-grid">
-    <div class="dict-category-card">
-      <div class="dict-cat-icon">🎬</div>
-      <div class="dict-cat-name">도입부</div>
-      <div class="dict-cat-count" id="dictCount_intro">0개</div>
+    <div class="dict-sidebar-divider"></div>
+
+    <div class="dict-sidebar-section">
+      <div class="dict-sidebar-label">카테고리</div>
+      <div class="dict-nav-item" data-filter="intro">
+        <span class="dict-nav-icon">🎬</span>
+        <span class="dict-nav-label">도입부</span>
+        <span class="dict-nav-count" id="navCount_intro">0</span>
+      </div>
+      <div class="dict-nav-item" data-filter="hook">
+        <span class="dict-nav-icon">🎯</span>
+        <span class="dict-nav-label">후크</span>
+        <span class="dict-nav-count" id="navCount_hook">0</span>
+      </div>
+      <div class="dict-nav-item" data-filter="overlay">
+        <span class="dict-nav-icon">📌</span>
+        <span class="dict-nav-label">표시 제목</span>
+        <span class="dict-nav-count" id="navCount_overlay">0</span>
+      </div>
+      <div class="dict-nav-item" data-filter="cut">
+        <span class="dict-nav-icon">✂️</span>
+        <span class="dict-nav-label">컷 패턴</span>
+        <span class="dict-nav-count" id="navCount_cut">0</span>
+      </div>
+      <div class="dict-nav-item" data-filter="cta">
+        <span class="dict-nav-icon">🎁</span>
+        <span class="dict-nav-label">결론 CTA</span>
+        <span class="dict-nav-count" id="navCount_cta">0</span>
+      </div>
+      <div class="dict-nav-item" data-filter="key">
+        <span class="dict-nav-icon">🔑</span>
+        <span class="dict-nav-label">키 템플릿</span>
+        <span class="dict-nav-count" id="navCount_key">0</span>
+      </div>
     </div>
-    <div class="dict-category-card">
-      <div class="dict-cat-icon">🎯</div>
-      <div class="dict-cat-name">후크</div>
-      <div class="dict-cat-count" id="dictCount_hook">0개</div>
+  </aside>
+
+  <!-- 메인 -->
+  <div class="dict-main">
+    <div class="dict-toolbar">
+      <input type="text" id="dictSearch" class="dict-search" placeholder="🔍 제목·내용·메모 검색...">
+      <select id="dictSort" class="dict-sort-select">
+        <option value="newest">최신순</option>
+        <option value="oldest">오래된순</option>
+        <option value="title">제목순</option>
+        <option value="favorite">즐겨찾기 우선</option>
+      </select>
+      <button class="btn btn-primary" id="dictNewBtn">+ 새 카드</button>
     </div>
-    <div class="dict-category-card">
-      <div class="dict-cat-icon">📌</div>
-      <div class="dict-cat-name">표시 제목</div>
-      <div class="dict-cat-count" id="dictCount_overlay">0개</div>
+
+    <div id="dictGrid" class="dict-grid"></div>
+
+    <div id="dictEmpty" class="dict-empty" style="display:none;">
+      <div class="dict-empty-icon">📦</div>
+      <div class="dict-empty-title">구조 사전이 비어 있습니다.</div>
+      <div class="dict-empty-desc">
+        🔍 끝내기 도구에서 잘된 숏폼을 분해하면<br>
+        이곳에 자동으로 쌓입니다.<br><br>
+        또는 직접 새 카드를 추가해 보세요.
+      </div>
+      <div class="dict-empty-actions">
+        <a href="shortform-study.html" class="btn btn-primary" style="text-decoration:none;">🔍 끝내기 시작 →</a>
+        <button class="btn btn-secondary" id="dictEmptyNewBtn">+ 새 카드</button>
+      </div>
     </div>
-    <div class="dict-category-card">
-      <div class="dict-cat-icon">✂️</div>
-      <div class="dict-cat-name">컷 패턴</div>
-      <div class="dict-cat-count" id="dictCount_cut">0개</div>
-    </div>
-    <div class="dict-category-card">
-      <div class="dict-cat-icon">🎁</div>
-      <div class="dict-cat-name">결론 CTA</div>
-      <div class="dict-cat-count" id="dictCount_cta">0개</div>
-    </div>
-    <div class="dict-category-card">
-      <div class="dict-cat-icon">🔑</div>
-      <div class="dict-cat-name">키 템플릿</div>
-      <div class="dict-cat-count" id="dictCount_key">0개</div>
+
+    <div id="dictNoResults" class="dict-empty" style="display:none;">
+      <div class="dict-empty-icon">🔍</div>
+      <div class="dict-empty-title">검색 결과가 없습니다.</div>
+      <div class="dict-empty-desc">다른 검색어나 카테고리를 시도해 보세요.</div>
     </div>
   </div>
+</div>
 
-  <div class="sf-placeholder-notice" id="dictNotice" style="margin-top:32px;">
-    🆕 0개 카드 — <a href="shortform-study.html" style="color:var(--accent);">끝내기</a>에서 분석을 완료하면 카드가 쌓입니다. 본격 검색·필터는 S3에서 구현됩니다.
+<!-- 카드 편집/추가 모달 -->
+<div class="dict-modal-overlay hidden" id="dictModalOverlay">
+  <div class="dict-modal" id="dictModal">
+    <div class="dict-modal-header">
+      <span class="dict-modal-title" id="dictModalTitle">새 카드</span>
+      <button class="dict-modal-close" id="dictModalClose">&times;</button>
+    </div>
+    <div class="dict-modal-body">
+      <input type="hidden" id="dictFormId">
+
+      <div class="dict-form-field">
+        <label class="dict-form-label">카테고리 <span>*</span></label>
+        <select id="dictFormCategory" class="dict-form-select">
+          <option value="intro">🎬 도입부</option>
+          <option value="hook">🎯 후크</option>
+          <option value="overlay">📌 표시 제목</option>
+          <option value="cut">✂️ 컷 패턴</option>
+          <option value="cta">🎁 결론 CTA</option>
+          <option value="key">🔑 키 템플릿</option>
+        </select>
+      </div>
+
+      <div class="dict-form-field">
+        <label class="dict-form-label">제목 <span>*</span></label>
+        <input type="text" id="dictFormTitle" class="dict-form-input" placeholder="예) 공감형 질문 오프닝">
+      </div>
+
+      <div class="dict-form-field">
+        <label class="dict-form-label">내용</label>
+        <textarea id="dictFormContent" class="dict-form-textarea" placeholder="구조·패턴 기록 (어떤 방식인지 설명)"></textarea>
+      </div>
+
+      <div class="dict-form-field">
+        <label class="dict-form-label">구조 메모</label>
+        <textarea id="dictFormStructureNotes" class="dict-form-textarea" style="min-height:70px;" placeholder="어떻게 분해됐는지 (예: 도입 3초 → 질문 → 공감 → 답변 예고)"></textarea>
+      </div>
+
+      <div class="dict-form-field">
+        <label class="dict-form-label">출처 제목</label>
+        <input type="text" id="dictFormSourceTitle" class="dict-form-input" placeholder="예) 채널명 / 영상 제목">
+      </div>
+
+      <div class="dict-form-field">
+        <label class="dict-form-label">출처 URL</label>
+        <input type="url" id="dictFormSourceUrl" class="dict-form-input" placeholder="https://...">
+      </div>
+
+      <label class="dict-form-checkbox-row">
+        <input type="checkbox" id="dictFormFavorite">
+        ⭐ 즐겨찾기
+      </label>
+    </div>
+    <div class="dict-modal-footer">
+      <button class="btn btn-secondary" id="dictFormCancel">취소</button>
+      <button class="btn btn-primary" id="dictFormSave">저장</button>
+    </div>
   </div>
+</div>
 
+<!-- 불러오기 확인 모달 -->
+<div class="dict-import-modal-overlay hidden" id="dictImportConfirmOverlay">
+  <div class="dict-import-modal">
+    <h3>📥 사전 불러오기</h3>
+    <p id="dictImportConfirmMsg">ZIP 파일에서 카드를 불러옵니다. 기존 카드와 병합하거나 덮어쓸 수 있습니다.</p>
+    <div class="dict-import-modal-btns">
+      <button class="btn btn-secondary" id="dictImportCancelBtn">취소</button>
+      <button class="btn btn-secondary" id="dictImportMergeBtn">병합</button>
+      <button class="btn btn-primary" id="dictImportOverwriteBtn">덮어쓰기</button>
+    </div>
+  </div>
 </div>
 
 <script>
-  function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    var icon = document.getElementById('themeIcon');
-    if (icon) icon.innerHTML = theme === 'dark' ? '&#9788;' : '&#9790;';
-    localStorage.setItem('broll-theme', theme);
-  }
-  applyTheme(getTheme());
-  document.getElementById('themeToggle').onclick = function () {
-    applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
-  };
+  (function () {
+    function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      var icon = document.getElementById('themeIcon');
+      if (icon) icon.innerHTML = theme === 'dark' ? '&#9788;' : '&#9790;';
+      localStorage.setItem('broll-theme', theme);
+    }
+    applyTheme(getTheme());
+    document.getElementById('themeToggle').onclick = function () {
+      applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+    };
+  })();
 </script>
 <script src="js/dictionary-db.js"></script>
 <script src="js/dictionary.js"></script>

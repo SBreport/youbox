@@ -8,6 +8,7 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/study.css">
 </head>
 <body>
 
@@ -21,59 +22,183 @@
   </div>
 </div>
 
-<div style="max-width:640px;margin:48px auto;padding:0 24px;">
-  <div class="sf-study-card">
-    <p class="sf-study-intro">매일 1편씩 잘된 숏폼을 분해해 학습합니다.</p>
+<div class="study-page">
 
-    <div class="sf-study-steps">
-      <div class="sf-study-step">
-        <span class="sf-step-num">1단계</span>
-        <div>
-          <strong>잘된 숏폼 찾기</strong>
-          <span class="sf-step-hint">좋아요 5천+ 영상 선택</span>
-        </div>
+  <!-- 헤더 바: 주간 카운트 + 목표 -->
+  <div class="study-header-bar">
+    <h2>잘된 숏폼을 분해하고 강점을 쌓는 루틴</h2>
+    <span class="week-count-badge" id="weekCount">이번 주 0/3편</span>
+    <select class="week-goal-select" id="weekGoal" title="주간 목표 편수">
+      <option value="3">목표: 3편/주</option>
+      <option value="5">목표: 5편/주</option>
+      <option value="7">목표: 7편/주 (이상적)</option>
+    </select>
+  </div>
+
+  <!-- 새 끝내기 시작 -->
+  <div class="new-study-zone">
+    <span>잘된 숏폼 찾기 → 분해 → 저장 → 적용까지 4단계</span>
+    <button class="btn btn-primary" id="newStudyBtn">+ 새로 시작</button>
+  </div>
+
+  <!-- 진행 중 -->
+  <div class="study-section-title">진행 중</div>
+  <div class="study-card-list" id="inProgressList"></div>
+
+  <!-- 완료 -->
+  <div class="study-section-title" style="margin-top:28px;">완료된 끝내기</div>
+  <div class="study-card-list" id="completedList"></div>
+
+</div>
+
+<!-- ── 4단계 모달 ── -->
+<div class="study-modal-overlay hidden" id="studyModalOverlay">
+  <div class="study-modal">
+
+    <!-- 모달 헤더 -->
+    <div class="study-modal-header">
+      <h3>숏폼 끝내기</h3>
+      <button class="btn-icon" id="modalCloseBtn" title="닫기">✕</button>
+    </div>
+
+    <!-- 진행 바 -->
+    <div class="step-progress-bar">
+      <div class="step-node active" id="stepNode1">
+        <div class="step-circle">1</div>
+        <div class="step-label">찾기</div>
       </div>
-      <div class="sf-study-step">
-        <span class="sf-step-num">2단계</span>
-        <div>
-          <strong>분해</strong>
-          <span class="sf-step-hint">도입부 · 후크 · 구조 분석</span>
-        </div>
+      <div class="step-node" id="stepNode2">
+        <div class="step-circle">2</div>
+        <div class="step-label">분해</div>
       </div>
-      <div class="sf-study-step">
-        <span class="sf-step-num">3단계</span>
-        <div>
-          <strong>저장</strong>
-          <span class="sf-step-hint">구조 사전에 패턴 추가</span>
-        </div>
+      <div class="step-node" id="stepNode3">
+        <div class="step-circle">3</div>
+        <div class="step-label">저장</div>
       </div>
-      <div class="sf-study-step">
-        <span class="sf-step-num">4단계</span>
-        <div>
-          <strong>적용</strong>
-          <span class="sf-step-hint">내 영상에 어떻게 쓸지 메모</span>
-        </div>
+      <div class="step-node" id="stepNode4">
+        <div class="step-circle">4</div>
+        <div class="step-label">적용</div>
       </div>
     </div>
 
-    <div class="sf-placeholder-notice">
-      📝 S2에서 인터랙티브 폼으로 구현됩니다.
+    <!-- 폼 본문 -->
+    <div class="study-form-body">
+
+      <!-- Step 1: 찾기 -->
+      <div class="study-step-panel active" id="step1">
+        <div class="form-group">
+          <label class="form-label form-label-req" for="studyUrl">영상 URL</label>
+          <input type="url" id="studyUrl" class="form-input" placeholder="https://youtube.com/shorts/... 또는 인스타·틱톡 링크">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="studyTitle">영상 제목</label>
+          <input type="text" id="studyTitle" class="form-input" placeholder="영상 제목 또는 분석 메모용 이름">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="studyLikes">좋아요 수</label>
+          <input type="number" id="studyLikes" class="form-input" placeholder="5,000 이상 권장" min="0">
+          <div class="form-warning" id="likesWarning">⚠️ 좋아요 1,000개 미만입니다. 콘텐츠 가치로 잘된 영상인지 확인하세요.</div>
+          <div class="form-hint">기본 기준: 좋아요 5,000개+ (소규모 카테고리는 1,000개+)</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">출처 소스</label>
+          <div class="source-radio-group">
+            <label class="source-radio-label">
+              <input type="radio" name="studySource" value="뷰트랩"> 뷰트랩
+            </label>
+            <label class="source-radio-label">
+              <input type="radio" name="studySource" value="합비디오(VidIQ)"> 합비디오(VidIQ)
+            </label>
+            <label class="source-radio-label">
+              <input type="radio" name="studySource" value="인스타"> 인스타
+            </label>
+            <label class="source-radio-label">
+              <input type="radio" name="studySource" value="틱톡"> 틱톡
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: 분해 -->
+      <div class="study-step-panel" id="step2">
+        <div class="form-hint" style="margin-bottom:14px;">
+          9가지 항목을 분석합니다. (?) 클릭 시 강의 4강 해당 내용으로 이동합니다.
+        </div>
+        <div class="breakdown-items" id="breakdownItems"></div>
+      </div>
+
+      <!-- Step 3: 저장 -->
+      <div class="study-step-panel" id="step3">
+        <div class="form-hint" style="margin-bottom:14px;">
+          어느 구조 사전 카테고리에 저장할지 선택하세요. 복수 선택 가능합니다.
+        </div>
+        <div class="category-check-grid" id="categoryCheckGrid"></div>
+        <div id="categoryFieldsArea"></div>
+      </div>
+
+      <!-- Step 4: 적용 -->
+      <div class="study-step-panel" id="step4">
+        <div class="form-group">
+          <label class="form-label" for="studyApplication">내 다음 영상에 어떻게 쓸지</label>
+          <textarea id="studyApplication" class="form-textarea" rows="5"
+            placeholder="이 영상에서 배운 구조·감정 포인트·템포를 내 채널에 구체적으로 어떻게 적용할지 기록하세요."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">적용 우선순위</label>
+          <div class="priority-radio-group">
+            <label class="priority-radio-label checked">
+              <input type="radio" name="studyPriority" value="now" checked>
+              <span class="pri-icon">🔥</span>
+              즉시 적용
+            </label>
+            <label class="priority-radio-label">
+              <input type="radio" name="studyPriority" value="soon">
+              <span class="pri-icon">📅</span>
+              이번 달
+            </label>
+            <label class="priority-radio-label">
+              <input type="radio" name="studyPriority" value="later">
+              <span class="pri-icon">💭</span>
+              언젠가
+            </label>
+          </div>
+        </div>
+      </div>
+
     </div>
+
+    <!-- 하단 액션 -->
+    <div class="study-form-actions">
+      <div class="left">
+        <button class="btn btn-secondary" id="stepPrevBtn" style="display:none;">← 이전</button>
+      </div>
+      <div class="right">
+        <button class="btn btn-primary" id="stepNextBtn">다음 단계 →</button>
+        <button class="btn btn-primary" id="stepCompleteBtn" style="display:none;">완료 ✓</button>
+      </div>
+    </div>
+
   </div>
 </div>
+
+<!-- 토스트 -->
+<div class="study-toast" id="studyToast"></div>
 
 <script>
   function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    const icon = document.getElementById('themeIcon');
+    var icon = document.getElementById('themeIcon');
     if (icon) icon.innerHTML = theme === 'dark' ? '&#9788;' : '&#9790;';
     localStorage.setItem('broll-theme', theme);
   }
-  function toggleTheme() { applyTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
   applyTheme(getTheme());
-  document.getElementById('themeToggle').onclick = toggleTheme;
+  document.getElementById('themeToggle').onclick = function () {
+    applyTheme(getTheme() === 'dark' ? 'light' : 'dark');
+  };
 </script>
+<script src="js/dictionary-db.js"></script>
+<script src="js/shortform-study.js"></script>
 <script src="js/nav.js"></script>
 </body>
 </html>

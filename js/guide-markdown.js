@@ -7,8 +7,9 @@ const GuideMarkdown = {
     const self = this;
 
     const renderer = {
-      heading({ tokens, depth }) {
-        const text = tokens.map(t => t.raw || t.text || '').join('');
+      heading(token) {
+        const depth = token.depth;
+        const text = token.text || '';
         const id = self._makeId(text);
 
         // toc에 h2, h3만 추가
@@ -16,21 +17,27 @@ const GuideMarkdown = {
           self._toc.push({ level: depth, text, id });
         }
 
-        return `<h${depth} id="${id}">${marked.parseInline(text)}</h${depth}>\n`;
+        const inner = (token.tokens && this.parser)
+          ? this.parser.parseInline(token.tokens)
+          : escapeHtml(text);
+        return `<h${depth} id="${id}">${inner}</h${depth}>\n`;
       },
 
       // .md 파일 링크에 data-lecture-link 부여
-      link({ href, title, tokens }) {
-        const text = tokens.map(t => t.raw || t.text || '').join('');
-        const parsedText = marked.parseInline(text);
-        if (href && href.match(/\.md(\?.*)?$/i)) {
-          const safeHref = escapeHtml(href);
-          const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
-          return `<a href="${safeHref}"${titleAttr} data-lecture-link="${safeHref}">${parsedText}</a>`;
-        }
-        const safeHref = escapeHtml(href || '');
+      link(token) {
+        const href = token.href || '';
+        const title = token.title;
+        const text = token.text || '';
+        const inner = (token.tokens && this.parser)
+          ? this.parser.parseInline(token.tokens)
+          : escapeHtml(text);
         const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
-        return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noopener">${parsedText}</a>`;
+        if (href.match(/\.md(\?.*)?$/i)) {
+          const safeHref = escapeHtml(href);
+          return `<a href="${safeHref}"${titleAttr} data-lecture-link="${safeHref}">${inner}</a>`;
+        }
+        const safeHref = escapeHtml(href);
+        return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noopener">${inner}</a>`;
       }
     };
 

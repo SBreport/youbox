@@ -74,12 +74,10 @@
   if (mode === 'key') document.body.classList.add('is-key-mode');
 
   // ── 컨텍스트 바 갱신 ──
-  const TEMPLATE_NAMES = {
-    list: '📋 나열형',
-    sequence: '📝 순서형',
-    story: '🎬 스토리형',
-    argue: '💪 주장설득형'
-  };
+  // SHORTFORM_CONCEPTS.pullingTemplates 에서 동적 생성 (F5)
+  const TEMPLATE_NAMES = Object.fromEntries(
+    SHORTFORM_CONCEPTS.pullingTemplates.map(t => [t.id, t.icon + ' ' + t.label])
+  );
 
   function updateContextBar() {
     const sf = project.shortform || {};
@@ -196,19 +194,13 @@
   function renderCh1() {
     const topic = project.shortform?.topic || {};
 
-    const templateOptions = [
-      { value: 'list',     icon: '📋', name: '나열형',      example: '"X하는 5가지 방법"' },
-      { value: 'sequence', icon: '📝', name: '순서형',      example: '"X 단계별 절차"' },
-      { value: 'story',    icon: '🎬', name: '스토리형',    example: '"내가 X한 경험"' },
-      { value: 'argue',    icon: '💪', name: '주장 설득형', example: '"X해야 한다 — 이유 N가지"' }
-    ];
-
-    const cardsHtml = templateOptions.map(t => `
+    // SHORTFORM_CONCEPTS.pullingTemplates 에서 렌더 (F5)
+    const cardsHtml = SHORTFORM_CONCEPTS.pullingTemplates.map(t => `
       <label class="sf-template-card">
-        <input type="radio" name="sfTemplate" value="${t.value}" ${topic.template === t.value ? 'checked' : ''}>
+        <input type="radio" name="sfTemplate" value="${t.id}" ${topic.template === t.id ? 'checked' : ''}>
         <div class="sf-template-card-inner">
           <div class="sf-template-card-icon">${t.icon}</div>
-          <div class="sf-template-card-name">${t.name}</div>
+          <div class="sf-template-card-name">${t.label}</div>
           <div class="sf-template-card-example">${t.example}</div>
         </div>
       </label>
@@ -218,35 +210,22 @@
     const keyShort = project.shortform?.keyShort || {};
     const isKey = (project.shortform?.mode === 'key');
 
-    const keyTemplateOptions = [
-      { value: 'problem',     icon: '🩹', name: '문제 해결형',   example: '"문제 보여주고 → 우리 솔루션"' },
-      { value: 'pulling-key', icon: '🪝', name: '풀링+키',       example: '"풀링 콘텐츠 → 자연스럽게 키로 전환"' },
-      { value: 'recommend',   icon: '👍', name: '제품 추천형',   example: '"내가 써봤는데 좋더라"' },
-      { value: 'demo',        icon: '🎬', name: '시연형',        example: '"이렇게 사용한다"' },
-      { value: 'review',      icon: '👤', name: '1인칭 리뷰',    example: '"솔직 후기"' },
-      { value: 'compare',     icon: '⚖️', name: '타사 차이점',   example: '"X vs Y 비교"' }
-    ];
-
-    const keyTemplateCardsHtml = keyTemplateOptions.map(t => `
+    // SHORTFORM_CONCEPTS.keyTemplates 에서 렌더 (F5)
+    const keyTemplateCardsHtml = SHORTFORM_CONCEPTS.keyTemplates.map(t => `
       <label class="sf-template-card">
-        <input type="radio" name="sfKeyTemplate" value="${t.value}" ${keyShort.template === t.value ? 'checked' : ''}>
+        <input type="radio" name="sfKeyTemplate" value="${t.id}" ${keyShort.template === t.id ? 'checked' : ''}>
         <div class="sf-template-card-inner">
           <div class="sf-template-card-icon">${t.icon}</div>
-          <div class="sf-template-card-name">${t.name}</div>
+          <div class="sf-template-card-name">${t.label}</div>
           <div class="sf-template-card-example">${t.example}</div>
         </div>
       </label>
     `).join('');
 
-    const engagements = [
-      { value: 'low',  label: '저관여', desc: '직접 판매 (이 숏폼에서 즉시 구매 유도)' },
-      { value: 'mid',  label: '중관여', desc: '미드폼 키 콘텐츠 연결' },
-      { value: 'high', label: '고관여', desc: 'DB 수집 (이메일/리드)' }
-    ];
-
-    const engagementHtml = engagements.map(e => `
-      <label class="sf-check-item ${keyShort.engagement === e.value ? 'checked' : ''}" id="sfEngLabel_${e.value}">
-        <input type="radio" name="sfEngagement" value="${e.value}" ${keyShort.engagement === e.value ? 'checked' : ''}>
+    // SHORTFORM_CONCEPTS.engagementLevels 에서 렌더 (F5)
+    const engagementHtml = SHORTFORM_CONCEPTS.engagementLevels.map(e => `
+      <label class="sf-check-item ${keyShort.engagement === e.id ? 'checked' : ''}" id="sfEngLabel_${e.id}">
+        <input type="radio" name="sfEngagement" value="${e.id}" ${keyShort.engagement === e.id ? 'checked' : ''}>
         <div class="sf-check-item-text">
           <div class="sf-check-item-label">${e.label}</div>
           <div class="sf-check-item-desc">${e.desc}</div>
@@ -507,33 +486,20 @@
   // ══════════════════════════════════
   //  Ch3 — 도입부 설계
   // ══════════════════════════════════
-  const SCREEN_OPTIONS = [
-    { value: 'admire',   icon: '😲', label: '감탄'  },
-    { value: 'curious',  icon: '🤔', label: '신기'  },
-    { value: 'shock',    icon: '😱', label: '엽기'  },
-    { value: 'fear',     icon: '😨', label: '공포'  },
-    { value: 'progress', icon: '⏩', label: '진행'  },
-    { value: 'sympathy', icon: '🤝', label: '공감'  },
-    { value: 'twist',    icon: '🔄', label: '반전'  },
-    { value: 'beauty',   icon: '💖', label: '예쁨'  }
-  ];
-
-  const TECHNIQUE_OPTIONS = [
-    { value: 'word',     label: '단어',    desc: '강한 단어 사용' },
-    { value: 'number',   label: '수치',    desc: '구체 숫자 ("5가지", "30초")' },
-    { value: 'expr',     label: '표현',    desc: '비유·은유' },
-    { value: 'simplify', label: '단순화',  desc: '짧게' },
-    { value: 'target',   label: '타겟 지칭', desc: '칵테일 파티 효과 ("3년차 직장인")' }
-  ];
+  // Ch3·Ch4 공유 옵션 — SHORTFORM_CONCEPTS에서 참조 (F5)
+  // 하위 호환 alias: 기존 코드가 SCREEN_OPTIONS / TECHNIQUE_OPTIONS를 직접 참조하는 경우를 위해 유지
+  const SCREEN_OPTIONS    = SHORTFORM_CONCEPTS.introScreens;
+  const TECHNIQUE_OPTIONS = SHORTFORM_CONCEPTS.enhanceTechniques;
 
   function renderCh3() {
     const intro = project.shortform?.intro || {};
     const techniques = Array.isArray(intro.techniques) ? intro.techniques : [];
     const overlayLen = (intro.overlay || '').length;
 
+    // SHORTFORM_CONCEPTS.introScreens 에서 렌더 (F5)
     const screenCardsHtml = SCREEN_OPTIONS.map(s => `
       <label class="sf-screen-card">
-        <input type="radio" name="sfScreen" value="${s.value}" ${intro.screen === s.value ? 'checked' : ''}>
+        <input type="radio" name="sfScreen" value="${s.id}" ${intro.screen === s.id ? 'checked' : ''}>
         <div class="sf-screen-card-inner">
           <div class="sf-screen-card-icon">${s.icon}</div>
           <div class="sf-screen-card-label">${s.label}</div>
@@ -541,9 +507,10 @@
       </label>
     `).join('');
 
+    // SHORTFORM_CONCEPTS.enhanceTechniques 에서 렌더 (F5)
     const techniqueItemsHtml = TECHNIQUE_OPTIONS.map(t => `
-      <label class="sf-technique-item ${techniques.includes(t.value) ? 'checked' : ''}">
-        <input type="checkbox" name="sfTechnique" value="${t.value}" ${techniques.includes(t.value) ? 'checked' : ''}>
+      <label class="sf-technique-item ${techniques.includes(t.id) ? 'checked' : ''}">
+        <input type="checkbox" name="sfTechnique" value="${t.id}" ${techniques.includes(t.id) ? 'checked' : ''}>
         ${t.label} <span style="font-weight:400;font-size:11px;color:inherit;opacity:0.75;">— ${t.desc}</span>
       </label>
     `).join('');
@@ -677,9 +644,10 @@
     const pct = Math.min(100, Math.round((bodyLenNl / 600) * 100));
     const progressClass = bodyLenNl === 0 ? 'empty' : bodyLenNl > 600 ? 'over' : bodyLenNl >= 150 ? 'good' : 'short';
 
+    // SHORTFORM_CONCEPTS.enhanceTechniques 에서 렌더 (F5)
     const techniqueItemsHtml = TECHNIQUE_OPTIONS.map(t => `
-      <label class="sf-technique-item ${techniques.includes(t.value) ? 'checked' : ''}">
-        <input type="checkbox" name="sfScriptTechnique" value="${t.value}" ${techniques.includes(t.value) ? 'checked' : ''}>
+      <label class="sf-technique-item ${techniques.includes(t.id) ? 'checked' : ''}">
+        <input type="checkbox" name="sfScriptTechnique" value="${t.id}" ${techniques.includes(t.id) ? 'checked' : ''}>
         ${t.label} <span style="font-weight:400;font-size:11px;color:inherit;opacity:0.75;">— ${t.desc}</span>
       </label>
     `).join('');
@@ -958,18 +926,12 @@
       </label>
     `).join('');
 
-    // 키 모드 전용: 설득 꿀팁 4종
-    const PERSUASION_TACTICS = [
-      { value: 'scarcity',  label: '희소성',   desc: '"한정 수량 / 마감 임박"' },
-      { value: 'urgency',   label: '긴박감',   desc: '"지금 당장 → 늦으면 손해"' },
-      { value: 'bonus',     label: '추가 보상', desc: '"지금 신청하면 추가 증정"' },
-      { value: 'guarantee', label: '보증 3종', desc: '"만족 보장 / 환불 / 이행 보증"' }
-    ];
+    // 키 모드 전용: 설득 꿀팁 4종 — SHORTFORM_CONCEPTS.persuasionTactics 에서 렌더 (F5)
     const persuasionTactics = Array.isArray(keyShort.persuasionTactics) ? keyShort.persuasionTactics : [];
 
-    const persuasionHtml = PERSUASION_TACTICS.map(t => `
-      <label class="sf-technique-item ${persuasionTactics.includes(t.value) ? 'checked' : ''}">
-        <input type="checkbox" name="sfPersuasion" value="${t.value}" ${persuasionTactics.includes(t.value) ? 'checked' : ''}>
+    const persuasionHtml = SHORTFORM_CONCEPTS.persuasionTactics.map(t => `
+      <label class="sf-technique-item ${persuasionTactics.includes(t.id) ? 'checked' : ''}">
+        <input type="checkbox" name="sfPersuasion" value="${t.id}" ${persuasionTactics.includes(t.id) ? 'checked' : ''}>
         ${t.label} <span style="font-weight:400;font-size:11px;color:inherit;opacity:0.75;">— ${t.desc}</span>
       </label>
     `).join('');

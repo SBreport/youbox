@@ -102,20 +102,8 @@
         </div>
         <div class="form-group">
           <label class="form-label">출처 소스</label>
-          <div class="source-radio-group">
-            <label class="source-radio-label">
-              <input type="radio" name="studySource" value="뷰트랩"> 뷰트랩
-            </label>
-            <label class="source-radio-label">
-              <input type="radio" name="studySource" value="합비디오(VidIQ)"> 합비디오(VidIQ)
-            </label>
-            <label class="source-radio-label">
-              <input type="radio" name="studySource" value="인스타"> 인스타
-            </label>
-            <label class="source-radio-label">
-              <input type="radio" name="studySource" value="틱톡"> 틱톡
-            </label>
-          </div>
+          <!-- SHORTFORM_CONCEPTS.studySources 에서 동적 렌더 (F5) -->
+          <div class="source-radio-group" id="sourceRadioGroup"></div>
         </div>
       </div>
 
@@ -198,6 +186,7 @@
   };
 </script>
 <script src="js/dictionary-db.js"></script>
+<script src="js/shortform-concepts.js"></script>
 <script src="js/shortform-study.js"></script>
 <script src="js/nav.js"></script>
 </body>

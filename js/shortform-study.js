@@ -78,11 +78,26 @@
 
   /* ── 초기화 ── */
   function init() {
+    buildSourceRadios();
     buildBreakdownItems();
     renderWeekCount();
     renderStudyLists();
     bindEvents();
     loadGoal();
+  }
+
+  /* ── 출처 소스 라디오 동적 생성 — SHORTFORM_CONCEPTS.studySources (F5) ── */
+  function buildSourceRadios() {
+    var container = document.getElementById('sourceRadioGroup');
+    if (!container) return;
+    if (typeof SHORTFORM_CONCEPTS === 'undefined' || !SHORTFORM_CONCEPTS.studySources) return;
+    container.innerHTML = SHORTFORM_CONCEPTS.studySources.map(function (src) {
+      return [
+        '<label class="source-radio-label">',
+        '<input type="radio" name="studySource" value="' + escHtml(src.label) + '"> ' + escHtml(src.label),
+        '</label>'
+      ].join('');
+    }).join('');
   }
 
   function loadGoal() {

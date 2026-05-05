@@ -1,4 +1,4 @@
-// shortform.js — 숏폼 제작 워크북 (S4: Ch1~3 구현)
+// shortform.js — 숏폼 제작 워크북 (S5: Ch1~6 구현 + 키모드 분기)
 
 (function() {
   const params = new URLSearchParams(location.search);
@@ -66,8 +66,12 @@
 
   const modeBadge = document.getElementById('sfModeBadge');
   const mode = project.shortform?.mode || 'pulling';
-  modeBadge.textContent = mode === 'key' ? '🔑 키' : '📡 풀링';
+  modeBadge.textContent = mode === 'key' ? '🔑 키 (수익화)' : '📡 풀링';
   modeBadge.style.display = 'inline-flex';
+  if (mode === 'key') modeBadge.classList.add('is-key-mode');
+
+  // 키 모드 시 body에 클래스 추가
+  if (mode === 'key') document.body.classList.add('is-key-mode');
 
   // ── 컨텍스트 바 갱신 ──
   const TEMPLATE_NAMES = {
@@ -87,7 +91,10 @@
     const ctxTarget = document.getElementById('sfCtxTarget');
     const ctxTemplate = document.getElementById('sfCtxTemplate');
 
-    if (ctxMode) ctxMode.textContent = modeLabel;
+    if (ctxMode) {
+      ctxMode.textContent = modeLabel;
+      ctxMode.classList.toggle('is-key-mode', sf.mode === 'key');
+    }
 
     if (ctxTopic) {
       if (topic.main) {
@@ -124,10 +131,41 @@
   const tabs = document.querySelectorAll('.sf-tab');
   let currentCh = 1;
 
+  // 챕터 완료 조건 판별
+  function isChapterDone(ch) {
+    const sf = project.shortform || {};
+    const topic = sf.topic || {};
+    const research = sf.research || {};
+    const intro = sf.intro || {};
+    const script = sf.script || {};
+    const storyboard = sf.storyboard || {};
+    const publish = sf.publish || {};
+    if (ch === 1) return !!(topic.main && topic.template);
+    if (ch === 2) return !!(research.gate1 && research.gate2) || !!(research.comments || research.internet || research.community || research.foreign);
+    if (ch === 3) return !!(intro.problem && intro.benefit && intro.screen);
+    if (ch === 4) return (script.body || '').replace(/\n/g, '').length >= 150;
+    if (ch === 5) return (storyboard.cuts || []).length >= 5;
+    if (ch === 6) return !!(publish.title);
+    return false;
+  }
+
+  function updateTabDoneMarks() {
+    tabs.forEach(tab => {
+      const ch = parseInt(tab.dataset.ch);
+      const done = isChapterDone(ch);
+      tab.classList.toggle('done', done);
+      // 탭 텍스트에 ✓ 마크 토글
+      const baseText = tab.dataset.label || tab.textContent.replace(' ✓', '');
+      if (!tab.dataset.label) tab.dataset.label = baseText;
+      tab.textContent = done ? baseText + ' ✓' : baseText;
+    });
+  }
+
   function switchChapter(ch) {
     currentCh = ch;
     tabs.forEach(t => t.classList.toggle('active', parseInt(t.dataset.ch) === ch));
     renderChapter(ch);
+    updateTabDoneMarks();
   }
 
   tabs.forEach(tab => {
@@ -140,23 +178,16 @@
     if (ch === 1) body.innerHTML = renderCh1();
     else if (ch === 2) body.innerHTML = renderCh2();
     else if (ch === 3) body.innerHTML = renderCh3();
-    else body.innerHTML = renderPlaceholder(ch);
+    else if (ch === 4) body.innerHTML = renderCh4();
+    else if (ch === 5) body.innerHTML = renderCh5();
+    else if (ch === 6) body.innerHTML = renderCh6();
 
     if (ch === 1) bindCh1();
     else if (ch === 2) bindCh2();
     else if (ch === 3) bindCh3();
-  }
-
-  function renderPlaceholder(ch) {
-    const LABELS = { 4: '원고', 5: '콘티', 6: '발행 + 회고' };
-    return `
-      <div class="sf-placeholder-msg">
-        <div class="sf-placeholder-icon">📝</div>
-        <p><strong>Ch${ch} ${LABELS[ch] || ''}</strong></p>
-        <p style="margin-top:6px;">이 챕터는 다음 단계(S5)에서 구현됩니다.</p>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">현재는 인프라 검증용 빈 쉘입니다.</p>
-      </div>
-    `;
+    else if (ch === 4) bindCh4();
+    else if (ch === 5) bindCh5();
+    else if (ch === 6) bindCh6();
   }
 
   // ══════════════════════════════════
@@ -182,6 +213,63 @@
         </div>
       </label>
     `).join('');
+
+    // 키 모드 추가 섹션
+    const keyShort = project.shortform?.keyShort || {};
+    const isKey = (project.shortform?.mode === 'key');
+
+    const keyTemplateOptions = [
+      { value: 'problem',     icon: '🩹', name: '문제 해결형',   example: '"문제 보여주고 → 우리 솔루션"' },
+      { value: 'pulling-key', icon: '🪝', name: '풀링+키',       example: '"풀링 콘텐츠 → 자연스럽게 키로 전환"' },
+      { value: 'recommend',   icon: '👍', name: '제품 추천형',   example: '"내가 써봤는데 좋더라"' },
+      { value: 'demo',        icon: '🎬', name: '시연형',        example: '"이렇게 사용한다"' },
+      { value: 'review',      icon: '👤', name: '1인칭 리뷰',    example: '"솔직 후기"' },
+      { value: 'compare',     icon: '⚖️', name: '타사 차이점',   example: '"X vs Y 비교"' }
+    ];
+
+    const keyTemplateCardsHtml = keyTemplateOptions.map(t => `
+      <label class="sf-template-card">
+        <input type="radio" name="sfKeyTemplate" value="${t.value}" ${keyShort.template === t.value ? 'checked' : ''}>
+        <div class="sf-template-card-inner">
+          <div class="sf-template-card-icon">${t.icon}</div>
+          <div class="sf-template-card-name">${t.name}</div>
+          <div class="sf-template-card-example">${t.example}</div>
+        </div>
+      </label>
+    `).join('');
+
+    const engagements = [
+      { value: 'low',  label: '저관여', desc: '직접 판매 (이 숏폼에서 즉시 구매 유도)' },
+      { value: 'mid',  label: '중관여', desc: '미드폼 키 콘텐츠 연결' },
+      { value: 'high', label: '고관여', desc: 'DB 수집 (이메일/리드)' }
+    ];
+
+    const engagementHtml = engagements.map(e => `
+      <label class="sf-check-item ${keyShort.engagement === e.value ? 'checked' : ''}" id="sfEngLabel_${e.value}">
+        <input type="radio" name="sfEngagement" value="${e.value}" ${keyShort.engagement === e.value ? 'checked' : ''}>
+        <div class="sf-check-item-text">
+          <div class="sf-check-item-label">${e.label}</div>
+          <div class="sf-check-item-desc">${e.desc}</div>
+        </div>
+      </label>
+    `).join('');
+
+    const keySection = isKey ? `
+      <div class="sf-divider"></div>
+      <div class="sf-section sf-key-section" id="sfKeySection">
+        <div class="sf-section-title">🔑 키 템플릿 6종 <span style="font-size:12px;font-weight:400;color:var(--text-muted);">강의 5강</span></div>
+        <div class="sf-template-cards sf-key-template-cards" id="sfKeyTemplateCards">
+          ${keyTemplateCardsHtml}
+        </div>
+
+        <div class="sf-field" style="margin-top:18px;">
+          <div class="sf-section-title" style="font-size:13px;">⚙️ 관여도 분기 <span style="font-size:12px;font-weight:400;color:var(--text-muted);">강의 5강</span></div>
+          <div class="sf-check-group" id="sfEngagementGroup">
+            ${engagementHtml}
+          </div>
+        </div>
+      </div>
+    ` : '';
 
     return `
       <a href="guide.html#1" class="sf-guide-link" target="_blank">📖 강의 1·2강 §주제선정 + 4종 템플릿 →</a>
@@ -218,6 +306,8 @@
           ${cardsHtml}
         </div>
       </div>
+
+      ${keySection}
     `;
   }
 
@@ -258,6 +348,34 @@
         if (radio.checked) {
           sf.topic.template = radio.value;
           updateContextBar();
+          updateTabDoneMarks();
+          saveNow(false);
+        }
+      });
+    });
+
+    // 키 템플릿 라디오 → 즉시 저장
+    if (!sf.keyShort) sf.keyShort = { template: null, persuasionTactics: [], engagement: null };
+    document.querySelectorAll('input[name="sfKeyTemplate"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          sf.keyShort.template = radio.value;
+          saveNow(false);
+        }
+      });
+    });
+
+    // 관여도 라디오 → 즉시 저장
+    document.querySelectorAll('input[name="sfEngagement"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          sf.keyShort.engagement = radio.value;
+          // 라디오지만 check-item 스타일 토글
+          document.querySelectorAll('[id^="sfEngLabel_"]').forEach(lbl => {
+            lbl.classList.remove('checked');
+          });
+          const lbl = document.getElementById('sfEngLabel_' + radio.value);
+          if (lbl) lbl.classList.add('checked');
           saveNow(false);
         }
       });
@@ -543,6 +661,522 @@
         saveNow(false);
       });
     });
+  }
+
+  // ══════════════════════════════════
+  //  Ch4 — 원고
+  // ══════════════════════════════════
+  function renderCh4() {
+    const script = project.shortform?.script || {};
+    const techniques = Array.isArray(script.techniques) ? script.techniques : [];
+    const bodyLen = (script.body || '').length;
+    const bodyLenNl = (script.body || '').replace(/\n/g, '').length;
+    const seconds = Math.round(bodyLenNl / 10);
+
+    // 프로그레스 퍼센트 (0~600자 → 0~100%)
+    const pct = Math.min(100, Math.round((bodyLenNl / 600) * 100));
+    const progressClass = bodyLenNl === 0 ? 'empty' : bodyLenNl > 600 ? 'over' : bodyLenNl >= 150 ? 'good' : 'short';
+
+    const techniqueItemsHtml = TECHNIQUE_OPTIONS.map(t => `
+      <label class="sf-technique-item ${techniques.includes(t.value) ? 'checked' : ''}">
+        <input type="checkbox" name="sfScriptTechnique" value="${t.value}" ${techniques.includes(t.value) ? 'checked' : ''}>
+        ${t.label} <span style="font-weight:400;font-size:11px;color:inherit;opacity:0.75;">— ${t.desc}</span>
+      </label>
+    `).join('');
+
+    return `
+      <a href="guide.html#3" class="sf-guide-link" target="_blank">📖 강의 3강 §원고 4체크포인트 →</a>
+
+      <div class="sf-callout important">
+        <span class="sf-callout-icon">📝</span>
+        <span><strong>1초 = 10자, 30초 = 300자, 60초 = 600자.</strong> 이 비율로 원고 길이를 맞추세요.</span>
+      </div>
+
+      <div class="sf-section">
+        <div class="sf-field">
+          <label>📝 원고 본문 <span class="sf-required">*</span></label>
+          <textarea id="sfScriptBody" class="sf-textarea sf-script-textarea" rows="10"
+            placeholder="도입부부터 마무리 행동 유도까지 원고 전체를 작성하세요.">${esc(script.body)}</textarea>
+          <div class="sf-script-counter-row">
+            <span class="sf-script-char-info">글자수: <span id="sfScriptCharCount">${bodyLenNl}</span>자 (~<span id="sfScriptSeconds">${seconds}</span>초)</span>
+            <span class="sf-script-char-hint" id="sfScriptHint">${bodyLenNl > 600 ? '⚠️ 너무 길어요 (권장 600자 이내)' : bodyLenNl >= 150 ? '✅ 좋은 길이' : '권장 최소 150자'}</span>
+          </div>
+          <div class="sf-script-progress-wrap">
+            <div class="sf-script-progress-bar ${progressClass}" id="sfScriptProgressBar" style="width:${pct}%"></div>
+            <div class="sf-script-progress-marker" style="left:50%">300자</div>
+            <div class="sf-script-progress-marker sf-script-progress-marker-end">600자</div>
+          </div>
+        </div>
+
+        <div class="sf-field">
+          <label>🎁 결론 행동 버튼 <span class="sf-required">*</span></label>
+          <textarea id="sfScriptCta" class="sf-textarea" rows="2"
+            placeholder="영상 끝에 시청자에게 요청하는 행동. 예: &quot;댓글에 OO 남겨주세요&quot; / &quot;지금 링크 클릭&quot;">${esc(script.cta)}</textarea>
+        </div>
+
+        <div class="sf-field">
+          <div class="sf-section-title" style="font-size:13px;">🔥 문구 강화 적용 5종</div>
+          <div class="sf-technique-group" id="sfScriptTechniqueGroup">
+            ${techniqueItemsHtml}
+          </div>
+        </div>
+      </div>
+
+      <a href="dictionary.html#hook" class="sf-dict-link" target="_blank">
+        📚 구조 사전에서 후크 불러오기 →
+      </a>
+    `;
+  }
+
+  function bindCh4() {
+    const sf = project.shortform;
+    if (!sf.script) sf.script = { body: '', cta: '', techniques: [] };
+    if (!Array.isArray(sf.script.techniques)) sf.script.techniques = [];
+
+    const bodyEl = document.getElementById('sfScriptBody');
+    const charCountEl = document.getElementById('sfScriptCharCount');
+    const secondsEl = document.getElementById('sfScriptSeconds');
+    const hintEl = document.getElementById('sfScriptHint');
+    const barEl = document.getElementById('sfScriptProgressBar');
+
+    function updateScriptCounter() {
+      const raw = bodyEl.value;
+      const len = raw.replace(/\n/g, '').length;
+      const sec = Math.round(len / 10);
+      const pct = Math.min(100, Math.round((len / 600) * 100));
+      if (charCountEl) charCountEl.textContent = len;
+      if (secondsEl) secondsEl.textContent = sec;
+      if (hintEl) {
+        hintEl.textContent = len > 600 ? '⚠️ 너무 길어요 (권장 600자 이내)' : len >= 150 ? '✅ 좋은 길이' : '권장 최소 150자';
+      }
+      if (barEl) {
+        barEl.style.width = pct + '%';
+        barEl.className = 'sf-script-progress-bar ' + (len === 0 ? 'empty' : len > 600 ? 'over' : len >= 150 ? 'good' : 'short');
+      }
+    }
+
+    if (bodyEl) {
+      bodyEl.addEventListener('input', () => {
+        sf.script.body = bodyEl.value;
+        updateScriptCounter();
+        updateTabDoneMarks();
+        saveDebounced();
+      });
+    }
+
+    const ctaEl = document.getElementById('sfScriptCta');
+    if (ctaEl) {
+      ctaEl.addEventListener('input', () => {
+        sf.script.cta = ctaEl.value;
+        saveDebounced();
+      });
+    }
+
+    document.querySelectorAll('input[name="sfScriptTechnique"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const techniques = [];
+        document.querySelectorAll('input[name="sfScriptTechnique"]:checked').forEach(c => techniques.push(c.value));
+        sf.script.techniques = techniques;
+        cb.closest('.sf-technique-item').classList.toggle('checked', cb.checked);
+        saveNow(false);
+      });
+    });
+  }
+
+  // ══════════════════════════════════
+  //  Ch5 — 콘티 (스토리보드)
+  // ══════════════════════════════════
+  function renderCh5() {
+    const storyboard = project.shortform?.storyboard || {};
+    const cuts = Array.isArray(storyboard.cuts) ? storyboard.cuts : [];
+
+    const cutsHtml = cuts.map((cut, i) => renderCutCard(cut, i)).join('');
+    const totalSec = cuts.reduce((sum, c) => sum + (parseFloat(c.duration) || 0), 0);
+    const totalSecRound = Math.round(totalSec * 10) / 10;
+
+    const durationClass = totalSec <= 0 ? '' : totalSec <= 30 ? 'good-30' : totalSec <= 60 ? 'good-60' : 'over';
+
+    return `
+      <a href="guide.html#3" class="sf-guide-link" target="_blank">📖 강의 3강 §콘티 →</a>
+
+      <div class="sf-callout" style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.25);color:#6366f1;margin-bottom:18px;">
+        <span class="sf-callout-icon">🎬</span>
+        <span>원고 문장별로 화면을 지정하세요. <strong>5~7컷 권장</strong>. 컷 길이 0.5~5초.</span>
+      </div>
+
+      <div id="sfCutList" class="sf-cut-list">
+        ${cutsHtml}
+      </div>
+
+      <button type="button" class="sf-add-cut-btn" id="sfAddCutBtn">+ 컷 추가</button>
+
+      <div class="sf-cut-total ${durationClass}" id="sfCutTotal">
+        총 길이 <strong id="sfCutTotalSec">${totalSecRound}</strong>초
+        <span class="sf-cut-total-hint" id="sfCutTotalHint">${totalSec <= 0 ? '' : totalSec <= 30 ? '(30초 이내 ✅)' : totalSec <= 60 ? '(60초 이내 ✅)' : '⚠️ 60초 초과'}</span>
+        <div class="sf-cut-duration-markers">
+          <span class="sf-cut-marker" style="left:calc(30/60*100%)">30초</span>
+          <span class="sf-cut-marker sf-cut-marker-end">60초</span>
+        </div>
+      </div>
+
+      <a href="dictionary.html#cut" class="sf-dict-link" target="_blank">
+        📚 구조 사전에서 컷 패턴 불러오기 →
+      </a>
+    `;
+  }
+
+  function renderCutCard(cut, index) {
+    const n = index + 1;
+    return `
+      <div class="sf-cut-card" data-index="${index}">
+        <div class="sf-cut-card-header">
+          <span class="sf-cut-num">#${n}</span>
+          <button type="button" class="sf-cut-delete-btn" data-index="${index}" title="컷 삭제">✕</button>
+        </div>
+        <div class="sf-cut-fields">
+          <div class="sf-cut-field">
+            <label>화면 설명</label>
+            <textarea class="sf-textarea sf-cut-screen" rows="2" data-index="${index}" data-field="screen"
+              placeholder="이 컷에서 보이는 화면 묘사">${esc(cut.screen)}</textarea>
+          </div>
+          <div class="sf-cut-field">
+            <label>자막</label>
+            <input type="text" class="sf-input sf-cut-subtitle" data-index="${index}" data-field="subtitle"
+              value="${esc(cut.subtitle)}" placeholder="화면에 표시될 자막">
+          </div>
+          <div class="sf-cut-fields-row">
+            <div class="sf-cut-field sf-cut-field-sm">
+              <label>길이 (초)</label>
+              <input type="number" class="sf-input sf-cut-duration" data-index="${index}" data-field="duration"
+                min="0.5" max="30" step="0.5" value="${esc(cut.duration)}" placeholder="초">
+            </div>
+            <div class="sf-cut-field sf-cut-field-lg">
+              <label>효과음·BGM</label>
+              <input type="text" class="sf-input sf-cut-sfx" data-index="${index}" data-field="sfx"
+                value="${esc(cut.sfx)}" placeholder="효과음, BGM 지정">
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function bindCh5() {
+    const sf = project.shortform;
+    if (!sf.storyboard) sf.storyboard = { cuts: [] };
+    if (!Array.isArray(sf.storyboard.cuts)) sf.storyboard.cuts = [];
+
+    function updateCutTotal() {
+      const cuts = sf.storyboard.cuts;
+      const total = cuts.reduce((sum, c) => sum + (parseFloat(c.duration) || 0), 0);
+      const rounded = Math.round(total * 10) / 10;
+      const totalEl = document.getElementById('sfCutTotal');
+      const totalSecEl = document.getElementById('sfCutTotalSec');
+      const hintEl = document.getElementById('sfCutTotalHint');
+      if (totalSecEl) totalSecEl.textContent = rounded;
+      if (hintEl) {
+        hintEl.textContent = total <= 0 ? '' : total <= 30 ? '(30초 이내 ✅)' : total <= 60 ? '(60초 이내 ✅)' : '⚠️ 60초 초과';
+      }
+      if (totalEl) {
+        totalEl.className = 'sf-cut-total ' + (total <= 0 ? '' : total <= 30 ? 'good-30' : total <= 60 ? 'good-60' : 'over');
+      }
+    }
+
+    function rebindCutInputs() {
+      // 화면 설명 textarea, 자막 input, 길이 input, 효과음 input
+      document.querySelectorAll('.sf-cut-screen, .sf-cut-subtitle, .sf-cut-duration, .sf-cut-sfx').forEach(el => {
+        el.addEventListener('input', () => {
+          const idx = parseInt(el.dataset.index);
+          const field = el.dataset.field;
+          if (!sf.storyboard.cuts[idx]) return;
+          sf.storyboard.cuts[idx][field] = el.value;
+          if (field === 'duration') updateCutTotal();
+          updateTabDoneMarks();
+          saveDebounced();
+        });
+      });
+
+      // 삭제 버튼
+      document.querySelectorAll('.sf-cut-delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.dataset.index);
+          sf.storyboard.cuts.splice(idx, 1);
+          const list = document.getElementById('sfCutList');
+          if (list) list.innerHTML = sf.storyboard.cuts.map((c, i) => renderCutCard(c, i)).join('');
+          updateCutTotal();
+          updateTabDoneMarks();
+          rebindCutInputs();
+          saveNow(false);
+        });
+      });
+    }
+
+    const addBtn = document.getElementById('sfAddCutBtn');
+    if (addBtn) {
+      addBtn.addEventListener('click', () => {
+        const newCut = { screen: '', subtitle: '', duration: '', sfx: '' };
+        sf.storyboard.cuts.push(newCut);
+        const list = document.getElementById('sfCutList');
+        if (list) {
+          const idx = sf.storyboard.cuts.length - 1;
+          list.insertAdjacentHTML('beforeend', renderCutCard(newCut, idx));
+        }
+        updateCutTotal();
+        updateTabDoneMarks();
+        rebindCutInputs();
+        saveNow(false);
+      });
+    }
+
+    rebindCutInputs();
+  }
+
+  // ══════════════════════════════════
+  //  Ch6 — 발행 + 회고
+  // ══════════════════════════════════
+  function renderCh6() {
+    const publish = project.shortform?.publish || {};
+    const review = project.shortform?.review || {};
+    const keyShort = project.shortform?.keyShort || {};
+    const isKey = (project.shortform?.mode === 'key');
+    const platforms = publish.platforms || {};
+
+    const titleLen = (publish.title || '').length;
+
+    const platformList = [
+      { key: 'youtube',   label: 'YouTube Shorts' },
+      { key: 'instagram', label: 'Instagram Reels' },
+      { key: 'tiktok',    label: 'TikTok' },
+      { key: 'threads',   label: 'Threads' },
+      { key: 'naverClip', label: '네이버 클립 ⭐' }
+    ];
+
+    const platformsHtml = platformList.map(p => `
+      <label class="sf-platform-item ${platforms[p.key] ? 'checked' : ''}" id="sfPlatLabel_${p.key}">
+        <input type="checkbox" class="sf-platform-cb" data-platform="${p.key}" ${platforms[p.key] ? 'checked' : ''}>
+        <span>${p.label}</span>
+      </label>
+    `).join('');
+
+    // 키 모드 전용: 설득 꿀팁 4종
+    const PERSUASION_TACTICS = [
+      { value: 'scarcity',  label: '희소성',   desc: '"한정 수량 / 마감 임박"' },
+      { value: 'urgency',   label: '긴박감',   desc: '"지금 당장 → 늦으면 손해"' },
+      { value: 'bonus',     label: '추가 보상', desc: '"지금 신청하면 추가 증정"' },
+      { value: 'guarantee', label: '보증 3종', desc: '"만족 보장 / 환불 / 이행 보증"' }
+    ];
+    const persuasionTactics = Array.isArray(keyShort.persuasionTactics) ? keyShort.persuasionTactics : [];
+
+    const persuasionHtml = PERSUASION_TACTICS.map(t => `
+      <label class="sf-technique-item ${persuasionTactics.includes(t.value) ? 'checked' : ''}">
+        <input type="checkbox" name="sfPersuasion" value="${t.value}" ${persuasionTactics.includes(t.value) ? 'checked' : ''}>
+        ${t.label} <span style="font-weight:400;font-size:11px;color:inherit;opacity:0.75;">— ${t.desc}</span>
+      </label>
+    `).join('');
+
+    const keyPersuasionSection = isKey ? `
+      <div class="sf-divider"></div>
+      <div class="sf-section sf-key-section">
+        <div class="sf-section-title">💪 설득 꿀팁 4종 <span style="font-size:12px;font-weight:400;color:var(--text-muted);">강의 5강</span></div>
+        <div class="sf-technique-group" id="sfPersuasionGroup">
+          ${persuasionHtml}
+        </div>
+      </div>
+    ` : '';
+
+    return `
+      <a href="guide.html#6" class="sf-guide-link" target="_blank">📖 강의 6강 §발행 + 회고 →</a>
+
+      <div class="sf-section">
+        <div class="sf-section-title">📤 발행 정보</div>
+
+        <div class="sf-field">
+          <label>🎬 영상 제목 <span class="sf-required">*</span></label>
+          <div class="sf-input-wrapper">
+            <input id="sfPublishTitle" type="text" class="sf-input" maxlength="80"
+              value="${esc(publish.title)}"
+              placeholder="유튜브 쇼츠 / 릴스용 영상 제목">
+            <span class="sf-char-counter ${titleLen > 40 ? 'over' : ''}" id="sfPublishTitleCounter">${titleLen}/40</span>
+          </div>
+        </div>
+
+        <div class="sf-field">
+          <label>📝 설명</label>
+          <textarea id="sfPublishDesc" class="sf-textarea" rows="3"
+            placeholder="영상 설명란에 들어갈 내용">${esc(publish.description)}</textarea>
+        </div>
+
+        <div class="sf-field">
+          <label>🏷️ 해시태그</label>
+          <input id="sfPublishHashtags" type="text" class="sf-input"
+            value="${esc(publish.hashtags)}"
+            placeholder="#숏폼 #유튜브쇼츠 #...">
+        </div>
+
+        <div class="sf-field">
+          <label>📅 발행 예정 시간</label>
+          <input id="sfPublishSchedule" type="datetime-local" class="sf-input"
+            value="${esc(publish.scheduledAt)}">
+        </div>
+
+        <div class="sf-field">
+          <label>🌐 플랫폼 동시 업로드</label>
+          <div class="sf-platform-group">
+            ${platformsHtml}
+          </div>
+        </div>
+      </div>
+
+      ${keyPersuasionSection}
+
+      <div class="sf-divider"></div>
+
+      <div class="sf-section sf-review-section">
+        <div class="sf-section-title">🪞 회고 <span style="font-size:12px;font-weight:400;color:var(--text-muted);">발행 후 작성</span></div>
+
+        <div class="sf-field">
+          <label>📉 첫 3초 이탈률</label>
+          <input id="sfReviewDropoff" type="text" class="sf-input"
+            value="${esc(review.dropoff3s)}"
+            placeholder="예: 40% → 20%로 개선 목표">
+        </div>
+
+        <div class="sf-field">
+          <label>🔁 루프 재생 횟수</label>
+          <input id="sfReviewLoop" type="text" class="sf-input"
+            value="${esc(review.loopCount)}"
+            placeholder="예: 2.3회">
+        </div>
+
+        <div class="sf-field">
+          <label>💡 다음 영상에 쓸 교훈</label>
+          <textarea id="sfReviewLesson" class="sf-textarea" rows="3"
+            placeholder="이 영상에서 배운 점, 다음에 바꿀 것">${esc(review.lesson)}</textarea>
+        </div>
+
+        <div class="sf-review-actions">
+          <a href="dictionary.html" class="sf-dict-link" target="_blank" style="margin-top:0;">
+            📚 구조 사전에 추가 →
+          </a>
+          <button type="button" class="btn btn-primary sf-review-done-btn ${review.completedAt ? 'done' : ''}" id="sfReviewDoneBtn">
+            ${review.completedAt ? '✓ 회고 완료됨' : '✓ 회고 완료'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function bindCh6() {
+    const sf = project.shortform;
+    if (!sf.publish) sf.publish = { title: '', description: '', hashtags: '', scheduledAt: '', platforms: { youtube: false, instagram: false, tiktok: false, threads: false, naverClip: false } };
+    if (!sf.publish.platforms) sf.publish.platforms = { youtube: false, instagram: false, tiktok: false, threads: false, naverClip: false };
+    if (!sf.review) sf.review = { dropoff3s: '', loopCount: '', lesson: '', completedAt: '' };
+    if (!sf.keyShort) sf.keyShort = { template: null, persuasionTactics: [], engagement: null };
+    if (!Array.isArray(sf.keyShort.persuasionTactics)) sf.keyShort.persuasionTactics = [];
+
+    const titleEl = document.getElementById('sfPublishTitle');
+    const titleCounterEl = document.getElementById('sfPublishTitleCounter');
+    if (titleEl) {
+      titleEl.addEventListener('input', () => {
+        sf.publish.title = titleEl.value;
+        const len = titleEl.value.length;
+        if (titleCounterEl) {
+          titleCounterEl.textContent = len + '/40';
+          titleCounterEl.classList.toggle('over', len > 40);
+        }
+        updateTabDoneMarks();
+        saveDebounced();
+      });
+    }
+
+    const descEl = document.getElementById('sfPublishDesc');
+    if (descEl) {
+      descEl.addEventListener('input', () => {
+        sf.publish.description = descEl.value;
+        saveDebounced();
+      });
+    }
+
+    const hashEl = document.getElementById('sfPublishHashtags');
+    if (hashEl) {
+      hashEl.addEventListener('input', () => {
+        sf.publish.hashtags = hashEl.value;
+        saveDebounced();
+      });
+    }
+
+    const schedEl = document.getElementById('sfPublishSchedule');
+    if (schedEl) {
+      schedEl.addEventListener('input', () => {
+        sf.publish.scheduledAt = schedEl.value;
+        saveDebounced();
+      });
+    }
+
+    // 플랫폼 체크박스
+    document.querySelectorAll('.sf-platform-cb').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const platform = cb.dataset.platform;
+        sf.publish.platforms[platform] = cb.checked;
+        const lbl = document.getElementById('sfPlatLabel_' + platform);
+        if (lbl) lbl.classList.toggle('checked', cb.checked);
+        saveNow(false);
+      });
+    });
+
+    // 설득 꿀팁 체크박스 (키 모드)
+    document.querySelectorAll('input[name="sfPersuasion"]').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const tactics = [];
+        document.querySelectorAll('input[name="sfPersuasion"]:checked').forEach(c => tactics.push(c.value));
+        sf.keyShort.persuasionTactics = tactics;
+        cb.closest('.sf-technique-item').classList.toggle('checked', cb.checked);
+        saveNow(false);
+      });
+    });
+
+    // 회고 필드들
+    const dropoffEl = document.getElementById('sfReviewDropoff');
+    if (dropoffEl) {
+      dropoffEl.addEventListener('input', () => {
+        sf.review.dropoff3s = dropoffEl.value;
+        saveDebounced();
+      });
+    }
+
+    const loopEl = document.getElementById('sfReviewLoop');
+    if (loopEl) {
+      loopEl.addEventListener('input', () => {
+        sf.review.loopCount = loopEl.value;
+        saveDebounced();
+      });
+    }
+
+    const lessonEl = document.getElementById('sfReviewLesson');
+    if (lessonEl) {
+      lessonEl.addEventListener('input', () => {
+        sf.review.lesson = lessonEl.value;
+        saveDebounced();
+      });
+    }
+
+    const doneBtnEl = document.getElementById('sfReviewDoneBtn');
+    if (doneBtnEl) {
+      doneBtnEl.addEventListener('click', () => {
+        const isAlreadyDone = !!sf.review.completedAt;
+        if (isAlreadyDone) {
+          sf.review.completedAt = '';
+          doneBtnEl.textContent = '✓ 회고 완료';
+          doneBtnEl.classList.remove('done');
+        } else {
+          sf.review.completedAt = new Date().toISOString();
+          doneBtnEl.textContent = '✓ 회고 완료됨';
+          doneBtnEl.classList.add('done');
+          showSaveToast('회고 완료!');
+        }
+        saveNow(false);
+      });
+    }
   }
 
   // ── 초기화 ──

@@ -199,6 +199,43 @@
           overlay: '',
           screen: null,
           techniques: []
+        },
+        // Ch4 — 원고
+        script: {
+          body: '',
+          cta: '',
+          techniques: []
+        },
+        // Ch5 — 콘티
+        storyboard: {
+          cuts: []
+        },
+        // Ch6 — 발행
+        publish: {
+          title: '',
+          description: '',
+          hashtags: '',
+          scheduledAt: '',
+          platforms: {
+            youtube: false,
+            instagram: false,
+            tiktok: false,
+            threads: false,
+            naverClip: false
+          }
+        },
+        // Ch6 — 회고
+        review: {
+          dropoff3s: '',
+          loopCount: '',
+          lesson: '',
+          completedAt: ''
+        },
+        // 키 모드 전용
+        keyShort: {
+          template: null,
+          persuasionTactics: [],
+          engagement: null
         }
       };
     }
@@ -226,13 +263,23 @@
       if (!raw) return null;
       const p = JSON.parse(raw);
       if (p && !p.type) p.type = 'longform';
-      // S4 migration: shortform projects without new fields get fallback defaults
+      // S4/S5 migration: shortform projects without new fields get fallback defaults
       if (p && p.type === 'shortform') {
         if (!p.shortform) p.shortform = { mode: 'pulling' };
         if (!p.shortform.topic) p.shortform.topic = { main: '', target: '', viewtrap: '', template: null };
         if (!p.shortform.research) p.shortform.research = { gate1: false, gate2: false, comments: '', internet: '', community: '', foreign: '' };
         if (!p.shortform.intro) p.shortform.intro = { problem: '', benefit: '', overlay: '', screen: null, techniques: [] };
         if (!Array.isArray(p.shortform.intro.techniques)) p.shortform.intro.techniques = [];
+        // S5 additions
+        if (!p.shortform.script) p.shortform.script = { body: '', cta: '', techniques: [] };
+        if (!Array.isArray(p.shortform.script.techniques)) p.shortform.script.techniques = [];
+        if (!p.shortform.storyboard) p.shortform.storyboard = { cuts: [] };
+        if (!Array.isArray(p.shortform.storyboard.cuts)) p.shortform.storyboard.cuts = [];
+        if (!p.shortform.publish) p.shortform.publish = { title: '', description: '', hashtags: '', scheduledAt: '', platforms: { youtube: false, instagram: false, tiktok: false, threads: false, naverClip: false } };
+        if (!p.shortform.publish.platforms) p.shortform.publish.platforms = { youtube: false, instagram: false, tiktok: false, threads: false, naverClip: false };
+        if (!p.shortform.review) p.shortform.review = { dropoff3s: '', loopCount: '', lesson: '', completedAt: '' };
+        if (!p.shortform.keyShort) p.shortform.keyShort = { template: null, persuasionTactics: [], engagement: null };
+        if (!Array.isArray(p.shortform.keyShort.persuasionTactics)) p.shortform.keyShort.persuasionTactics = [];
       }
       return p;
     } catch { return null; }

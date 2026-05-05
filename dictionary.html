@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구조 사전 — youbox</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/nav.css">
+</head>
+<body>
+
+<div class="header">
+  <h1>🧱 구조 사전</h1>
+  <div class="header-actions">
+    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;font-size:12px;">← 홈</a>
+    <button class="theme-toggle" id="themeToggle" title="테마 전환">
+      <span id="themeIcon">&#9788;</span>
+    </button>
+  </div>
+</div>
+
+<div style="max-width:760px;margin:48px auto;padding:0 24px;">
+
+  <div class="dict-category-grid">
+    <div class="dict-category-card">
+      <div class="dict-cat-name">도입부</div>
+      <div class="dict-cat-count">0개</div>
+    </div>
+    <div class="dict-category-card">
+      <div class="dict-cat-name">후크</div>
+      <div class="dict-cat-count">0개</div>
+    </div>
+    <div class="dict-category-card">
+      <div class="dict-cat-name">표시제목</div>
+      <div class="dict-cat-count">0개</div>
+    </div>
+    <div class="dict-category-card">
+      <div class="dict-cat-name">컷 패턴</div>
+      <div class="dict-cat-count">0개</div>
+    </div>
+    <div class="dict-category-card">
+      <div class="dict-cat-name">결론 CTA</div>
+      <div class="dict-cat-count">0개</div>
+    </div>
+    <div class="dict-category-card">
+      <div class="dict-cat-name">키 템플릿</div>
+      <div class="dict-cat-count">0개</div>
+    </div>
+  </div>
+
+  <div class="sf-placeholder-notice" style="margin-top:32px;">
+    📦 끝내기에서 누적된 구조가 여기에 쌓입니다.<br>
+    <span style="font-size:12px;color:var(--text-muted);">S3에서 검색 · 필터 · 즐겨찾기 · 내보내기를 구현합니다.</span>
+  </div>
+
+</div>
+
+<script>
+  function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.innerHTML = theme === 'dark' ? '&#9788;' : '&#9790;';
+    localStorage.setItem('broll-theme', theme);
+  }
+  function toggleTheme() { applyTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
+  applyTheme(getTheme());
+  document.getElementById('themeToggle').onclick = toggleTheme;
+</script>
+<script src="js/nav.js"></script>
+</body>
+</html>

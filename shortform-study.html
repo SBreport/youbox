@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>숏폼 끝내기 — youbox</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/nav.css">
+</head>
+<body>
+
+<div class="header">
+  <h1>🔍 숏폼 끝내기</h1>
+  <div class="header-actions">
+    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;font-size:12px;">← 홈</a>
+    <button class="theme-toggle" id="themeToggle" title="테마 전환">
+      <span id="themeIcon">&#9788;</span>
+    </button>
+  </div>
+</div>
+
+<div style="max-width:640px;margin:48px auto;padding:0 24px;">
+  <div class="sf-study-card">
+    <p class="sf-study-intro">매일 1편씩 잘된 숏폼을 분해해 학습합니다.</p>
+
+    <div class="sf-study-steps">
+      <div class="sf-study-step">
+        <span class="sf-step-num">1단계</span>
+        <div>
+          <strong>잘된 숏폼 찾기</strong>
+          <span class="sf-step-hint">좋아요 5천+ 영상 선택</span>
+        </div>
+      </div>
+      <div class="sf-study-step">
+        <span class="sf-step-num">2단계</span>
+        <div>
+          <strong>분해</strong>
+          <span class="sf-step-hint">도입부 · 후크 · 구조 분석</span>
+        </div>
+      </div>
+      <div class="sf-study-step">
+        <span class="sf-step-num">3단계</span>
+        <div>
+          <strong>저장</strong>
+          <span class="sf-step-hint">구조 사전에 패턴 추가</span>
+        </div>
+      </div>
+      <div class="sf-study-step">
+        <span class="sf-step-num">4단계</span>
+        <div>
+          <strong>적용</strong>
+          <span class="sf-step-hint">내 영상에 어떻게 쓸지 메모</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sf-placeholder-notice">
+      📝 S2에서 인터랙티브 폼으로 구현됩니다.
+    </div>
+  </div>
+</div>
+
+<script>
+  function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.innerHTML = theme === 'dark' ? '&#9788;' : '&#9790;';
+    localStorage.setItem('broll-theme', theme);
+  }
+  function toggleTheme() { applyTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
+  applyTheme(getTheme());
+  document.getElementById('themeToggle').onclick = toggleTheme;
+</script>
+<script src="js/nav.js"></script>
+</body>
+</html>

@@ -5,10 +5,12 @@
     { type: 'divider' },
     { type: 'group', label: '숏폼', icon: '📚', children: [
       { label: '강의', icon: '📖', href: 'guide.html' },
-      { label: '제작', icon: '🎬', href: null, disabled: true, badge: '준비중' }
+      { label: '끝내기', icon: '🔍', href: 'shortform-study.html' },
+      { label: '구조 사전', icon: '🧱', href: 'dictionary.html' },
+      { label: '제작', icon: '🎬', href: 'shortform.html' }
     ]},
     { type: 'divider' },
-    { type: 'item', label: '썸네일 창고', icon: '📦', href: 'warehouse.html' }
+    { type: 'item', label: '썸네일 창고', icon: '🗂️', href: 'warehouse.html' }
   ];
 
   function currentPage() {

@@ -4,8 +4,34 @@
   const listEl = () => document.getElementById('projectList');
   const emptyEl = () => document.getElementById('emptyState');
 
+  const FILTER_KEY = 'yw-type-filter';
+
+  function getFilter() {
+    return localStorage.getItem(FILTER_KEY) || 'all';
+  }
+
+  function setFilter(val) {
+    localStorage.setItem(FILTER_KEY, val);
+  }
+
+  function typeBadgeHtml(type, shortformMode) {
+    if (type === 'shortform') {
+      const label = shortformMode === 'key' ? '🎬 숏폼·키' : '🎬 숏폼';
+      return `<span class="project-type-badge shortform">${label}</span>`;
+    }
+    return `<span class="project-type-badge longform">📝 롱폼</span>`;
+  }
+
   function render() {
-    const projects = ProjectsDB.list().sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+    const filter = getFilter();
+    const filterEl = document.getElementById('projectTypeFilter');
+    if (filterEl) filterEl.value = filter;
+
+    let projects = ProjectsDB.list().sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+    if (filter !== 'all') {
+      projects = projects.filter(p => (p.type || 'longform') === filter);
+    }
+
     const list = listEl();
     list.innerHTML = '';
 
@@ -22,9 +48,14 @@
       card.className = 'project-card';
       const timeAgo = _timeAgo(p.updatedAt);
       const progress = p.progress || {};
+      const pType = p.type || 'longform';
+      const badge = typeBadgeHtml(pType, p.shortformMode);
       card.innerHTML = `
-        <div class="project-card-main" data-id="${p.id}">
-          <div class="project-card-title">${escapeHtml(p.title || '제목 없음')}</div>
+        <div class="project-card-main" data-id="${p.id}" data-type="${pType}">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <div class="project-card-title" style="margin-bottom:0;">${escapeHtml(p.title || '제목 없음')}</div>
+            ${badge}
+          </div>
           <div class="project-card-meta">
             <span class="chapter-dot ${progress.c1 ? 'done' : ''}" title="기획">1</span>
             <span class="chapter-dot ${progress.c2 ? 'done' : ''}" title="원고">2</span>
@@ -33,7 +64,7 @@
           </div>
         </div>
         <div class="project-card-actions">
-          <button class="btn-icon" data-act="open" data-id="${p.id}" title="열기">&rarr;</button>
+          <button class="btn-icon" data-act="open" data-id="${p.id}" data-type="${pType}" title="열기">&rarr;</button>
           <button class="btn-icon" data-act="duplicate" data-id="${p.id}" title="복제">&#10697;</button>
           <button class="btn-icon" data-act="export" data-id="${p.id}" title="ZIP 내보내기">&#8615;</button>
           <button class="btn-icon danger" data-act="delete" data-id="${p.id}" title="삭제">&#10005;</button>
@@ -48,7 +79,7 @@
         e.stopPropagation();
         const id = actBtn.dataset.id;
         const act = actBtn.dataset.act;
-        if (act === 'open') openProject(id);
+        if (act === 'open') openProject(id, actBtn.dataset.type);
         else if (act === 'duplicate') {
           await ProjectsDB.duplicate(id);
           render();
@@ -64,12 +95,13 @@
         return;
       }
       const main = e.target.closest('.project-card-main');
-      if (main) openProject(main.dataset.id);
+      if (main) openProject(main.dataset.id, main.dataset.type);
     };
   }
 
-  function openProject(id) {
-    window.location.href = `project.html?id=${encodeURIComponent(id)}`;
+  function openProject(id, type) {
+    const dest = (type === 'shortform') ? 'shortform.html' : 'project.html';
+    window.location.href = `${dest}?id=${encodeURIComponent(id)}`;
   }
 
   function _timeAgo(iso) {
@@ -84,12 +116,83 @@
     return new Date(iso).toLocaleDateString('ko-KR');
   }
 
-  // ── Create new project ──
-  document.getElementById('newProjectBtn').onclick = () => {
-    const name = prompt('새 프로젝트 제목을 입력하세요:', '');
-    if (name === null) return;
-    const p = ProjectsDB.create(name.trim() || '새 프로젝트');
-    openProject(p.id);
+  // ── Filter ──
+  document.getElementById('projectTypeFilter').onchange = (e) => {
+    setFilter(e.target.value);
+    render();
+  };
+
+  // ── New project modal ──
+  const modal = document.getElementById('newProjectModal');
+
+  function openNewProjectModal() {
+    document.getElementById('npTitleInput').value = '';
+    document.querySelector('input[name="npType"][value="longform"]').checked = true;
+    document.querySelector('input[name="npMode"][value="pulling"]').checked = true;
+    document.getElementById('npModeSection').style.display = 'none';
+    _updateTypeCards();
+    _updateModeCards();
+    modal.classList.add('show');
+    setTimeout(() => document.getElementById('npTitleInput').focus(), 50);
+  }
+
+  function closeNewProjectModal() {
+    modal.classList.remove('show');
+  }
+
+  function _updateTypeCards() {
+    const val = document.querySelector('input[name="npType"]:checked')?.value;
+    document.getElementById('npTypeLongform').classList.toggle('selected', val === 'longform');
+    document.getElementById('npTypeShortform').classList.toggle('selected', val === 'shortform');
+    document.getElementById('npModeSection').style.display = (val === 'shortform') ? 'block' : 'none';
+  }
+
+  function _updateModeCards() {
+    const val = document.querySelector('input[name="npMode"]:checked')?.value;
+    document.getElementById('npModePulling').classList.toggle('selected', val === 'pulling');
+    document.getElementById('npModeKey').classList.toggle('selected', val === 'key');
+  }
+
+  document.getElementById('newProjectBtn').onclick = openNewProjectModal;
+
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeNewProjectModal();
+  });
+
+  document.getElementById('npCancelBtn').onclick = closeNewProjectModal;
+
+  // Type card click
+  document.getElementById('npTypeLongform').onclick = () => {
+    document.querySelector('input[name="npType"][value="longform"]').checked = true;
+    _updateTypeCards();
+  };
+  document.getElementById('npTypeShortform').onclick = () => {
+    document.querySelector('input[name="npType"][value="shortform"]').checked = true;
+    _updateTypeCards();
+  };
+
+  // Mode card click
+  document.getElementById('npModePulling').onclick = () => {
+    document.querySelector('input[name="npMode"][value="pulling"]').checked = true;
+    _updateModeCards();
+  };
+  document.getElementById('npModeKey').onclick = () => {
+    document.querySelector('input[name="npMode"][value="key"]').checked = true;
+    _updateModeCards();
+  };
+
+  document.getElementById('npTitleInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('npCreateBtn').click();
+    if (e.key === 'Escape') closeNewProjectModal();
+  });
+
+  document.getElementById('npCreateBtn').onclick = () => {
+    const title = document.getElementById('npTitleInput').value.trim() || '새 프로젝트';
+    const type = document.querySelector('input[name="npType"]:checked')?.value || 'longform';
+    const shortformMode = document.querySelector('input[name="npMode"]:checked')?.value || 'pulling';
+    const p = ProjectsDB.create({ title, type, shortformMode });
+    closeNewProjectModal();
+    openProject(p.id, type);
   };
 
   // ── Import ZIP ──

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>숏폼 제작 — youbox</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/nav.css">
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <h1 id="sfTitle">🎬 숏폼 제작</h1>
+    <span id="sfModeBadge" style="display:none;" class="project-type-badge shortform"></span>
+  </div>
+  <div class="header-actions">
+    <a href="index.html" class="btn btn-secondary" style="text-decoration:none;font-size:12px;">← 홈</a>
+    <button class="theme-toggle" id="themeToggle" title="테마 전환">
+      <span id="themeIcon">&#9788;</span>
+    </button>
+  </div>
+</div>
+
+<div id="sfNoProject" style="display:none;margin:60px auto;max-width:480px;" class="empty-state">
+  <p>숏폼 프로젝트를 선택해주세요</p>
+  <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">
+    홈에서 <strong>+ 새 프로젝트 → 숏폼</strong>으로 새 프로젝트를 만들거나,<br>
+    기존 숏폼 프로젝트 카드를 클릭하세요.
+  </p>
+  <a href="index.html" class="btn btn-primary" style="display:inline-block;margin-top:16px;text-decoration:none;">홈으로</a>
+</div>
+
+<div id="sfWorkbook" style="display:none;">
+  <!-- Chapter tabs -->
+  <div class="sf-tabs" id="sfTabs">
+    <button class="sf-tab active" data-ch="1">Ch1 주제+템플릿</button>
+    <button class="sf-tab" data-ch="2">Ch2 자료조사</button>
+    <button class="sf-tab" data-ch="3">Ch3 도입부</button>
+    <button class="sf-tab" data-ch="4">Ch4 원고</button>
+    <button class="sf-tab" data-ch="5">Ch5 콘티</button>
+    <button class="sf-tab" data-ch="6">Ch6 발행</button>
+  </div>
+
+  <!-- Chapter content -->
+  <div class="sf-chapter-body">
+    <div id="sfChapterContent" class="sf-placeholder-msg">
+      <div class="sf-placeholder-icon">📝</div>
+      <p>이 챕터는 다음 단계(S3, S4)에서 구현됩니다.</p>
+      <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">현재는 인프라 검증용 빈 쉘입니다.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.innerHTML = theme === 'dark' ? '&#9788;' : '&#9790;';
+    localStorage.setItem('broll-theme', theme);
+  }
+  function toggleTheme() { applyTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
+  applyTheme(getTheme());
+  document.getElementById('themeToggle').onclick = toggleTheme;
+</script>
+<script src="js/projects-db.js"></script>
+<script src="js/shortform.js"></script>
+<script src="js/nav.js"></script>
+</body>
+</html>

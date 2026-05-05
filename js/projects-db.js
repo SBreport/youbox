@@ -113,6 +113,8 @@
       id: project.id,
       title: project.thumbResearch?.myVideoTitle || project.name || '제목 없음',
       updatedAt: project.updatedAt,
+      type: project.type || 'longform',
+      shortformMode: project.shortform?.mode || null,
       progress: {
         c1: !!project.thumbResearch?.completed,
         c2: !!project.scriptWriting?.completed,
@@ -125,12 +127,14 @@
   }
 
   // ── Project CRUD ──
-  function blankProject(name) {
+  function blankProject(name, type, shortformMode) {
     const id = uuid();
     const now = nowISO();
-    return {
+    const projectType = type || 'longform';
+    const base = {
       id,
       name: name || '새 프로젝트',
+      type: projectType,
       createdAt: now,
       updatedAt: now,
       thumbResearch: {
@@ -172,10 +176,19 @@
       },
       version: 1
     };
+    if (projectType === 'shortform') {
+      base.shortform = {
+        mode: shortformMode || 'pulling'
+      };
+    }
+    return base;
   }
 
-  function create(name) {
-    const p = blankProject(name);
+  function create(options) {
+    const name = typeof options === 'string' ? options : (options?.title || '새 프로젝트');
+    const type = typeof options === 'object' ? (options?.type || 'longform') : 'longform';
+    const shortformMode = typeof options === 'object' ? (options?.shortformMode || 'pulling') : undefined;
+    const p = blankProject(name, type, shortformMode);
     save(p);
     return p;
   }
@@ -189,7 +202,10 @@
   function load(id) {
     try {
       const raw = localStorage.getItem(PROJECT_KEY_PREFIX + id);
-      return raw ? JSON.parse(raw) : null;
+      if (!raw) return null;
+      const p = JSON.parse(raw);
+      if (p && !p.type) p.type = 'longform';
+      return p;
     } catch { return null; }
   }
 
@@ -323,6 +339,9 @@
     saveImage, loadImage, loadImageUrl, deleteImage, listImagesByProject,
     // Migration
     detectV2Data, migrateV2, clearV2,
+    // Type helpers
+    getType(project) { return project?.type || 'longform'; },
+    isShortform(project) { return (project?.type || 'longform') === 'shortform'; },
     // Utility
     uuid, nowISO
   };

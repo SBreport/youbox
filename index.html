@@ -34,9 +34,14 @@
 <div class="home-layout">
   <div class="home-actions">
     <button class="btn btn-primary" id="newProjectBtn">+ 새 프로젝트</button>
-    <a href="warehouse.html" class="btn btn-secondary" style="text-decoration:none;">📦 썸네일 창고</a>
+    <a href="warehouse.html" class="btn btn-secondary" style="text-decoration:none;">🗂️ 썸네일 창고</a>
     <a href="guide.html" class="btn btn-secondary" style="text-decoration:none;">📚 숏폼 강의</a>
     <span style="flex:1;"></span>
+    <select id="projectTypeFilter" class="btn btn-secondary" style="cursor:pointer;padding:6px 10px;">
+      <option value="all">전체 유형</option>
+      <option value="longform">📝 롱폼</option>
+      <option value="shortform">🎬 숏폼</option>
+    </select>
     <button class="btn btn-secondary" id="importZipBtn">ZIP 불러오기</button>
     <button class="btn btn-secondary" id="exportAllBtn">전체 백업</button>
     <input type="file" id="zipFileInput" accept=".zip" style="display:none">
@@ -53,6 +58,61 @@
         위의 <strong>+ 새 프로젝트</strong> 버튼을 눌러 시작하거나,<br>
         이전에 내보낸 <strong>.zip</strong> 파일을 드롭해서 불러올 수 있습니다.
       </p>
+    </div>
+  </div>
+</div>
+
+<!-- New project modal -->
+<div class="modal-overlay" id="newProjectModal">
+  <div class="modal" style="width:480px;">
+    <h3>새 프로젝트</h3>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;">유형</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <label class="np-type-card" id="npTypeLongform">
+          <input type="radio" name="npType" value="longform" checked style="display:none;">
+          <span class="np-type-icon">📝</span>
+          <div>
+            <div style="font-weight:600;font-size:13px;">롱폼</div>
+            <div style="font-size:11px;color:var(--text-muted);">5~30분 · 4챕터</div>
+          </div>
+        </label>
+        <label class="np-type-card" id="npTypeShortform">
+          <input type="radio" name="npType" value="shortform" style="display:none;">
+          <span class="np-type-icon">🎬</span>
+          <div>
+            <div style="font-weight:600;font-size:13px;">숏폼</div>
+            <div style="font-size:11px;color:var(--text-muted);">15~90초 · 6챕터</div>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div id="npModeSection" style="display:none;margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;">모드</div>
+      <div style="display:flex;gap:8px;">
+        <label class="np-mode-card" id="npModePulling">
+          <input type="radio" name="npMode" value="pulling" checked style="display:none;">
+          <div style="font-weight:600;font-size:12px;">풀링</div>
+          <div style="font-size:11px;color:var(--text-muted);">정보 제공 · 트래픽</div>
+        </label>
+        <label class="np-mode-card" id="npModeKey">
+          <input type="radio" name="npMode" value="key" style="display:none;">
+          <div style="font-weight:600;font-size:12px;">키</div>
+          <div style="font-size:11px;color:var(--text-muted);">상품 · 서비스 판매</div>
+        </label>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);display:block;margin-bottom:8px;">제목</label>
+      <input type="text" id="npTitleInput" placeholder="프로젝트 제목을 입력하세요" autocomplete="off">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="npCancelBtn">취소</button>
+      <button class="btn btn-primary" id="npCreateBtn">만들기</button>
     </div>
   </div>
 </div>

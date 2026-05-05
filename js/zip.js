@@ -72,7 +72,12 @@
     const zip = await JSZip.loadAsync(file);
 
     // Detect ZIP type
-    const meta = JSON.parse(await zip.file('meta.json').async('string'));
+    const metaFile = zip.file('meta.json');
+    if (!metaFile) {
+      alert('이 ZIP은 youbox 백업 형식이 아닙니다 (meta.json 없음).');
+      return null;
+    }
+    const meta = JSON.parse(await metaFile.async('string'));
     if (meta.type === 'warehouse') {
       return await _importWarehouse(zip);
     }

@@ -72,20 +72,18 @@ const GuideMarkdown = {
         return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noopener">${inner}</a>`;
       },
 
-      blockquote(token) {
-        const inner = marked.Parser.parse(token.tokens, marked.getDefaults());
-
-        const firstText = extractFirstText(token);
-        const m = firstText && firstText.match(/^\s*\[!(TIP|IMPORTANT|WARNING|NOTE|CAUTION)\]/i);
+      blockquote(body) {
+        // marked v12: blockquote renderer receives already-rendered inner HTML string
+        const m = body.match(/^\s*<p>\s*\[!(TIP|IMPORTANT|WARNING|NOTE|CAUTION)\]/i);
 
         if (m) {
           const type = m[1].toLowerCase();
-          // 렌더된 HTML에서 [!TYPE] 라벨 제거 (줄바꿈 포함)
-          const cleaned = inner.replace(/\[!(TIP|IMPORTANT|WARNING|NOTE|CAUTION)\]\n?/i, '');
+          // <p>[!TYPE]\n... 에서 [!TYPE] 부분만 제거
+          const cleaned = body.replace(/\[!(TIP|IMPORTANT|WARNING|NOTE|CAUTION)\]\n?/i, '');
           return `<blockquote class="callout callout-${type}"><div class="callout-label">${calloutLabel(type)}</div><div class="callout-content">${cleaned}</div></blockquote>\n`;
         }
 
-        return `<blockquote>${inner}</blockquote>\n`;
+        return `<blockquote>${body}</blockquote>\n`;
       }
     };
 

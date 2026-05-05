@@ -113,10 +113,10 @@
     try {
       const filePath = GUIDE_DATA.baseDir + lecture.file;
       const markdown = await GuideMarkdown.fetchLecture(filePath);
-      const { html, toc } = GuideMarkdown.render(markdown);
+      const { html, toc, meta } = GuideMarkdown.render(markdown);
 
       currentToc = toc;
-      contentEl.innerHTML = html;
+      contentEl.innerHTML = buildMetaCard(meta) + html;
 
       // 본문 내 .md 링크 클릭 핸들러
       setupContentLinks();
@@ -293,6 +293,40 @@
   function closeSidebar() {
     sidebar.classList.remove('open');
     overlay.classList.remove('open');
+  }
+
+  // ── 메타 카드 빌드 ────────────────────────────────
+  function buildMetaCard(meta) {
+    if (!meta || Object.keys(meta).length === 0) return '';
+
+    const items = [];
+
+    if (meta['강']) {
+      items.push(`<span class="lecture-meta-item"><strong>강</strong> ${escapeHtml(meta['강'])}</span>`);
+    }
+    if (meta['시간']) {
+      items.push(`<span class="lecture-meta-item"><strong>시간</strong> ${escapeHtml(meta['시간'])}</span>`);
+    }
+    if (meta['난이도']) {
+      items.push(`<span class="lecture-meta-item"><strong>난이도</strong> ${escapeHtml(meta['난이도'])}</span>`);
+    }
+    if (meta['강사']) {
+      items.push(`<span class="lecture-meta-item"><strong>강사</strong> ${escapeHtml(meta['강사'])}</span>`);
+    }
+
+    let tagsHtml = '';
+    const tagSrc = meta['태그'] || meta['tags'];
+    if (tagSrc) {
+      const tagStr = tagSrc.replace(/^\[|\]$/g, '').trim();
+      const tags = tagStr.split(',').map(t => t.trim()).filter(Boolean);
+      if (tags.length > 0) {
+        tagsHtml = `<span class="lecture-meta-tags">${tags.map(escapeHtml).join(' · ')}</span>`;
+      }
+    }
+
+    if (items.length === 0 && !tagsHtml) return '';
+
+    return `<div class="lecture-meta">${items.join('')}${tagsHtml}</div>`;
   }
 
   // ── 시작 ─────────────────────────────────────────

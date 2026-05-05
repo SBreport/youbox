@@ -1,8 +1,42 @@
+const FRONTMATTER_RE = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+
+function parseFrontmatter(raw) {
+  const meta = {};
+  raw.split('\n').forEach(line => {
+    const colon = line.indexOf(':');
+    if (colon < 1) return;
+    const key = line.slice(0, colon).trim();
+    const val = line.slice(colon + 1).trim();
+    if (key) meta[key] = val;
+  });
+  return meta;
+}
+
+function extractFirstText(token) {
+  const first = token.tokens && token.tokens[0];
+  if (!first) return '';
+  if (first.type === 'paragraph' && first.tokens && first.tokens[0]) {
+    const t = first.tokens[0];
+    return t.raw || t.text || '';
+  }
+  return first.raw || first.text || '';
+}
+
+function calloutLabel(type) {
+  const labels = {
+    tip:       '💡 TIP',
+    important: '⭐ 중요',
+    warning:   '⚠️ 주의',
+    note:      '📝 NOTE',
+    caution:   '🚨 경고'
+  };
+  return labels[type] || type.toUpperCase();
+}
+
 const GuideMarkdown = {
   _toc: [],
   _idCounts: {},
 
-  // marked 설정
   configure() {
     const self = this;
 
@@ -12,7 +46,6 @@ const GuideMarkdown = {
         const text = token.text || '';
         const id = self._makeId(text);
 
-        // toc에 h2, h3만 추가
         if (depth === 2 || depth === 3) {
           self._toc.push({ level: depth, text, id });
         }
@@ -23,7 +56,6 @@ const GuideMarkdown = {
         return `<h${depth} id="${id}">${inner}</h${depth}>\n`;
       },
 
-      // .md 파일 링크에 data-lecture-link 부여
       link(token) {
         const href = token.href || '';
         const title = token.title;
@@ -38,6 +70,22 @@ const GuideMarkdown = {
         }
         const safeHref = escapeHtml(href);
         return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noopener">${inner}</a>`;
+      },
+
+      blockquote(token) {
+        const inner = marked.Parser.parse(token.tokens, marked.getDefaults());
+
+        const firstText = extractFirstText(token);
+        const m = firstText && firstText.match(/^\s*\[!(TIP|IMPORTANT|WARNING|NOTE|CAUTION)\]/i);
+
+        if (m) {
+          const type = m[1].toLowerCase();
+          // 렌더된 HTML에서 [!TYPE] 라벨 제거 (줄바꿈 포함)
+          const cleaned = inner.replace(/\[!(TIP|IMPORTANT|WARNING|NOTE|CAUTION)\]\n?/i, '');
+          return `<blockquote class="callout callout-${type}"><div class="callout-label">${calloutLabel(type)}</div><div class="callout-content">${cleaned}</div></blockquote>\n`;
+        }
+
+        return `<blockquote>${inner}</blockquote>\n`;
       }
     };
 
@@ -48,12 +96,10 @@ const GuideMarkdown = {
     });
   },
 
-  // 한글 포함 슬러그 생성 (중복 방지)
   _makeId(text) {
-    // HTML 태그 제거, 특수문자 제거, 공백→하이픈, 소문자
     let slug = text
-      .replace(/<[^>]+>/g, '')          // HTML 태그 제거
-      .replace(/[^\w\s가-힣]/g, '') // 한글·영숫자·공백만 남김
+      .replace(/<[^>]+>/g, '')
+      .replace(/[^\w\s가-힣]/g, '')
       .trim()
       .replace(/\s+/g, '-')
       .toLowerCase();
@@ -69,20 +115,27 @@ const GuideMarkdown = {
     }
   },
 
-  // 마크다운 → { html, toc }
   render(markdown) {
     this._toc = [];
     this._idCounts = {};
 
-    const html = marked.parse(markdown);
+    let body = markdown;
+    let meta = {};
+
+    const fmMatch = markdown.match(FRONTMATTER_RE);
+    if (fmMatch) {
+      meta = parseFrontmatter(fmMatch[1]);
+      body = markdown.slice(fmMatch[0].length);
+    }
+
+    const preprocessed = body.replace(/([가-힣\w])~([가-힣\w])/g, '$1&#126;$2');
+    const html = marked.parse(preprocessed);
     const toc = [...this._toc];
 
-    return { html, toc };
+    return { html, toc, meta };
   },
 
-  // 마크다운 파일 fetch (한글 경로 안전)
   async fetchLecture(filePath) {
-    // encodeURI: 경로 구분자(/)·콜론 등은 유지하면서 한글·공백만 인코딩
     const encoded = encodeURI(filePath);
     const res = await fetch(encoded);
     if (!res.ok) {
@@ -92,7 +145,6 @@ const GuideMarkdown = {
   }
 };
 
-// escapeHtml helper (guide-markdown 내부용, 전역에 없을 경우 대비)
 if (typeof escapeHtml === 'undefined') {
   function escapeHtml(str) {
     const div = document.createElement('div');

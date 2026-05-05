@@ -8,13 +8,14 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/shortform.css">
 </head>
 <body>
 
 <div class="header">
   <div style="display:flex;align-items:center;gap:10px;">
     <h1 id="sfTitle">🎬 숏폼 제작</h1>
-    <span id="sfModeBadge" style="display:none;" class="project-type-badge shortform"></span>
+    <span id="sfModeBadge" style="display:none;" class="sf-mode-badge"></span>
   </div>
   <div class="header-actions">
     <a href="index.html" class="btn btn-secondary" style="text-decoration:none;font-size:12px;">← 홈</a>
@@ -44,15 +45,33 @@
     <button class="sf-tab" data-ch="6">Ch6 발행</button>
   </div>
 
-  <!-- Chapter content -->
-  <div class="sf-chapter-body">
-    <div id="sfChapterContent" class="sf-placeholder-msg">
-      <div class="sf-placeholder-icon">📝</div>
-      <p>이 챕터는 다음 단계(S3, S4)에서 구현됩니다.</p>
-      <p style="font-size:12px;color:var(--text-muted);margin-top:6px;">현재는 인프라 검증용 빈 쉘입니다.</p>
+  <!-- Context bar (always visible) -->
+  <div class="sf-context-bar" id="sfContextBar">
+    <div class="sf-ctx-item">
+      <span class="sf-mode-badge" id="sfCtxModeBadge">풀링</span>
+    </div>
+    <div class="sf-ctx-item">
+      <span class="sf-ctx-label">주제</span>
+      <span class="sf-ctx-value empty" id="sfCtxTopic">주제 미설정</span>
+    </div>
+    <div class="sf-ctx-item">
+      <span class="sf-ctx-label">타겟</span>
+      <span class="sf-ctx-value empty" id="sfCtxTarget">—</span>
+    </div>
+    <div class="sf-ctx-item">
+      <span class="sf-ctx-label">템플릿</span>
+      <span class="sf-ctx-value empty" id="sfCtxTemplate">—</span>
     </div>
   </div>
+
+  <!-- Chapter content -->
+  <div class="sf-chapter-body" id="sfChapterBody">
+    <!-- JS로 렌더링 -->
+  </div>
 </div>
+
+<!-- Toast -->
+<div class="sf-toast" id="sfToast"></div>
 
 <script>
   function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }

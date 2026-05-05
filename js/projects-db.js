@@ -178,7 +178,28 @@
     };
     if (projectType === 'shortform') {
       base.shortform = {
-        mode: shortformMode || 'pulling'
+        mode: shortformMode || 'pulling',
+        topic: {
+          main: '',
+          target: '',
+          viewtrap: '',
+          template: null
+        },
+        research: {
+          gate1: false,
+          gate2: false,
+          comments: '',
+          internet: '',
+          community: '',
+          foreign: ''
+        },
+        intro: {
+          problem: '',
+          benefit: '',
+          overlay: '',
+          screen: null,
+          techniques: []
+        }
       };
     }
     return base;
@@ -205,6 +226,14 @@
       if (!raw) return null;
       const p = JSON.parse(raw);
       if (p && !p.type) p.type = 'longform';
+      // S4 migration: shortform projects without new fields get fallback defaults
+      if (p && p.type === 'shortform') {
+        if (!p.shortform) p.shortform = { mode: 'pulling' };
+        if (!p.shortform.topic) p.shortform.topic = { main: '', target: '', viewtrap: '', template: null };
+        if (!p.shortform.research) p.shortform.research = { gate1: false, gate2: false, comments: '', internet: '', community: '', foreign: '' };
+        if (!p.shortform.intro) p.shortform.intro = { problem: '', benefit: '', overlay: '', screen: null, techniques: [] };
+        if (!Array.isArray(p.shortform.intro.techniques)) p.shortform.intro.techniques = [];
+      }
       return p;
     } catch { return null; }
   }

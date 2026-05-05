@@ -1,0 +1,516 @@
+/* shortform.css — 숏폼 워크북 전용 스타일 */
+
+/* ── 탭 바 ── */
+.sf-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 10px 16px 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 48px;
+  z-index: 90;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sf-tabs::-webkit-scrollbar { display: none; }
+
+.sf-tab {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+}
+.sf-tab:hover { color: var(--text); background: var(--surface2); }
+.sf-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
+  background: var(--surface2);
+}
+
+/* ── 컨텍스트 바 ── */
+.sf-context-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 7px 20px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 89px; /* 48 header + 41 tabs approx */
+  z-index: 80;
+  font-size: 12px;
+  flex-wrap: wrap;
+  min-height: 36px;
+}
+.sf-ctx-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.sf-ctx-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.sf-ctx-value {
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: 500;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sf-ctx-value.empty { color: var(--text-muted); font-style: italic; }
+
+.sf-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+/* ── 챕터 본문 ── */
+.sf-chapter-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+}
+
+/* ── Placeholder (Ch4~6) ── */
+.sf-placeholder-msg {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.sf-placeholder-icon { font-size: 36px; margin-bottom: 12px; }
+.sf-placeholder-msg p { font-size: 14px; line-height: 1.7; }
+
+/* ── 챕터 섹션 공통 ── */
+.sf-section {
+  margin-bottom: 28px;
+}
+.sf-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-strong);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── 강의 링크 버튼 ── */
+.sf-guide-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: var(--surface2);
+  transition: all 0.15s;
+  margin-bottom: 18px;
+}
+.sf-guide-link:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* ── 폼 필드 ── */
+.sf-field {
+  margin-bottom: 18px;
+}
+.sf-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.sf-field label .sf-required {
+  color: var(--accent);
+  margin-left: 2px;
+}
+.sf-field .sf-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 5px;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.sf-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.sf-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+.sf-input::placeholder { color: var(--text-muted); }
+
+.sf-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.7;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.15s;
+}
+.sf-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+.sf-textarea::placeholder { color: var(--text-muted); }
+
+/* ── 글자수 카운터 ── */
+.sf-input-wrapper {
+  position: relative;
+}
+.sf-char-counter {
+  position: absolute;
+  right: 10px;
+  bottom: 9px;
+  font-size: 11px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.sf-char-counter.over { color: var(--accent); font-weight: 700; }
+.sf-input-wrapper .sf-input {
+  padding-right: 52px;
+}
+
+/* ── 템플릿 카드 라디오 (Ch1) ── */
+.sf-template-cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sf-template-card {
+  flex: 1;
+  min-width: 140px;
+  position: relative;
+  cursor: pointer;
+}
+.sf-template-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.sf-template-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  transition: all 0.15s;
+  cursor: pointer;
+  height: 100%;
+}
+.sf-template-card:hover .sf-template-card-inner {
+  border-color: var(--border-strong);
+  background: var(--surface3);
+}
+.sf-template-card input:checked + .sf-template-card-inner {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.sf-template-card-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.sf-template-card-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.sf-template-card input:checked + .sf-template-card-inner .sf-template-card-name {
+  color: var(--accent);
+}
+.sf-template-card-example {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.sf-template-card input:checked + .sf-template-card-inner .sf-template-card-example {
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+/* ── 도입 화면 카드 라디오 (Ch3, 2x4 그리드) ── */
+.sf-screen-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .sf-screen-cards { grid-template-columns: repeat(2, 1fr); }
+}
+.sf-screen-card {
+  position: relative;
+  cursor: pointer;
+}
+.sf-screen-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.sf-screen-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  transition: all 0.15s;
+  cursor: pointer;
+  text-align: center;
+}
+.sf-screen-card:hover .sf-screen-card-inner {
+  border-color: var(--border-strong);
+  background: var(--surface3);
+}
+.sf-screen-card input:checked + .sf-screen-card-inner {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.sf-screen-card-icon { font-size: 22px; line-height: 1; }
+.sf-screen-card-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.sf-screen-card input:checked + .sf-screen-card-inner .sf-screen-card-label {
+  color: var(--accent);
+}
+
+/* ── 체크박스 그룹 (2관문 / 문구 강화) ── */
+.sf-check-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sf-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  cursor: pointer;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  transition: all 0.12s;
+}
+.sf-check-item:hover { background: var(--surface3); border-color: var(--border-strong); }
+.sf-check-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.sf-check-item-text { flex: 1; }
+.sf-check-item-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.sf-check-item-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.sf-check-item.checked {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.sf-check-item.checked .sf-check-item-label { color: var(--accent); }
+
+/* ── 인라인 체크박스 그룹 (문구 강화) ── */
+.sf-technique-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sf-technique-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer;
+  transition: all 0.12s;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.sf-technique-item:hover { border-color: var(--border-strong); color: var(--text); }
+.sf-technique-item input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sf-technique-item.checked {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* ── 경고 박스 ── */
+.sf-warning-box {
+  display: none;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  border-radius: 7px;
+  color: #ca8a04;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 10px;
+}
+[data-theme="dark"] .sf-warning-box { color: #fbbf24; }
+.sf-warning-box.show { display: flex; }
+
+/* ── 콜아웃 박스 ── */
+.sf-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.55;
+  margin-bottom: 18px;
+}
+.sf-callout.important {
+  background: rgba(255, 107, 129, 0.08);
+  border: 1px solid rgba(255, 107, 129, 0.3);
+  color: var(--accent);
+}
+.sf-callout.warning {
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: #ca8a04;
+}
+[data-theme="dark"] .sf-callout.warning { color: #fbbf24; }
+.sf-callout-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.sf-callout strong { font-weight: 700; }
+
+/* ── 4소스 자료 영역 ── */
+.sf-sources-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 580px) {
+  .sf-sources-grid { grid-template-columns: 1fr; }
+}
+.sf-source-item label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.sf-source-item .sf-star {
+  color: #f59e0b;
+  font-size: 12px;
+}
+
+/* ── 저장 토스트 ── */
+.sf-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  padding: 7px 18px;
+  background: var(--surface2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.sf-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── 구분선 ── */
+.sf-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+}
+
+/* ── 구조 사전 링크 ── */
+.sf-dict-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--border-strong);
+  padding-bottom: 1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.sf-dict-link:hover { color: var(--accent); border-color: var(--accent); }

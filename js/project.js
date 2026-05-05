@@ -34,7 +34,6 @@
     switchChapter(activeChapter, true);
 
     document.getElementById('exportProjectBtn').onclick = () => ProjectZip.exportProject(project.id);
-    document.getElementById('homeBtn').onclick = () => location.href = 'index.html';
 
     // Help
     document.getElementById('helpBtn').onclick = () => document.getElementById('helpModal').classList.add('show');

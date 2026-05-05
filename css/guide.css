@@ -499,3 +499,38 @@
   .guide-content h2 { font-size: 18px; }
   .guide-content h3 { font-size: 15px; }
 }
+
+/* ── 💭 내 메모 인터랙티브 영역 ──────────────────── */
+.guide-note-area {
+  margin: 12px 0 24px;
+}
+.guide-note-input {
+  width: 100%;
+  min-height: 140px;
+  padding: 12px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.65;
+  resize: vertical;
+  transition: border-color 0.15s, background 0.15s;
+}
+.guide-note-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--surface);
+}
+.guide-note-input::placeholder {
+  color: var(--text-muted);
+}
+.guide-note-status {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  height: 14px;
+  text-align: right;
+  font-weight: 500;
+}

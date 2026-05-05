@@ -121,6 +121,9 @@
       // 본문 내 .md 링크 클릭 핸들러
       setupContentLinks();
 
+      // 💭 내 메모 영역 인터랙티브화
+      setupNotesArea(lectureId);
+
       // 사이드바 TOC 업데이트
       updateToc(lectureId, toc);
 
@@ -273,6 +276,56 @@
         }
       });
     });
+  }
+
+  // ── 💭 내 메모 영역 인터랙티브화 ──────────────────
+  function setupNotesArea(lectureId) {
+    const headings = contentEl.querySelectorAll('h2');
+    let memoHeading = null;
+    for (const h of headings) {
+      if (h.textContent.trim().includes('내 메모')) {
+        memoHeading = h;
+        break;
+      }
+    }
+    if (!memoHeading) return;
+
+    // 헤딩 다음 형제들 중 hr 또는 다음 h2 전까지 제거
+    let next = memoHeading.nextElementSibling;
+    while (next) {
+      const sibling = next.nextElementSibling;
+      if (next.tagName === 'HR' || next.tagName === 'H2') break;
+      next.remove();
+      next = sibling;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'guide-note-area';
+    const textarea = document.createElement('textarea');
+    textarea.className = 'guide-note-input';
+    textarea.placeholder = '여기에 자유롭게 메모하세요. 자동 저장됩니다.';
+    const status = document.createElement('div');
+    status.className = 'guide-note-status';
+
+    const storageKey = `guide-note-${lectureId}`;
+    textarea.value = localStorage.getItem(storageKey) || '';
+
+    let saveTimer;
+    function save() {
+      localStorage.setItem(storageKey, textarea.value);
+      status.textContent = '✓ 저장됨';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => { status.textContent = ''; }, 1500);
+    }
+    textarea.addEventListener('input', () => {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(save, 800);
+    });
+    textarea.addEventListener('blur', save);
+
+    wrapper.appendChild(textarea);
+    wrapper.appendChild(status);
+    memoHeading.parentNode.insertBefore(wrapper, memoHeading.nextSibling);
   }
 
   // ── 모바일 햄버거 토글 ────────────────────────────

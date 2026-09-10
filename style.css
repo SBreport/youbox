@@ -212,3 +212,5 @@ ul.plain li { margin: 4px 0; }
   .script-block { grid-template-columns: 1fr; }
   .script-time { margin-bottom: 2px; }
 }
+
+.muted { opacity: .75; font-size: .92rem; }

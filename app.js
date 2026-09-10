@@ -93,7 +93,7 @@ function buildEpisodeHtml(ep) {
   // 7. 제목·썸네일
   var tt = ep.titleThumbnail;
   html += section("7", "제목·썸네일",
-    "<p><strong>제목 3안</strong></p><ol>" + tt.제목3안.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ol>" +
+    (tt.확정제목 ? "<p><strong>확정 제목</strong> — " + esc(tt.확정제목) + "</p>" : "") + (tt.제목결정과정 ? "<p class=\"muted\">" + esc(tt.제목결정과정) + "</p>" : "") + "<p><strong>제목 후보</strong></p><ol>" + tt.제목3안.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ol>" +
     "<p><strong>썸네일 문구 2안</strong></p><ol>" + tt.썸네일2안.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ol>" +
     "<p>" + esc(tt.양식메모) + "</p>" +
     "<p><strong>이원화 규칙</strong>: " + esc(tt.이원화규칙) + "</p>");

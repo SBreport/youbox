@@ -1,177 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>youbox — 유튜브 창작자를 위한 작업 기록 도구</title>
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/nav.css">
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>기획 로그 — 조곤조곤 작업실</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-<div class="header">
-  <h1>youbox — 유튜브 창작자를 위한 작업 기록 도구</h1>
-  <div class="header-actions">
-    <button class="btn-icon" id="helpBtn" title="도움말" style="font-size:15px;">?</button>
-    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="다크/라이트 모드 전환">
-      <span id="themeIcon">&#9788;</span>
-    </button>
-  </div>
+<div class="wrap">
+  <header class="site-header">
+    <h1>기획 로그</h1>
+    <p>조곤조곤 작업실 — 원고 기획 과정 기록</p>
+  </header>
+  <div id="list" class="card-list">불러오는 중…</div>
 </div>
-
-<!-- v2 migration banner -->
-<div id="migrationBanner" style="display:none;" class="migration-banner">
-  <span id="migrationMsg"></span>
-  <div style="display:flex;gap:8px;">
-    <button class="btn btn-primary" id="migrateYesBtn">가져오기</button>
-    <button class="btn btn-secondary" id="migrateNoBtn">건너뛰기</button>
-  </div>
-</div>
-
-<div class="home-layout">
-  <div class="home-actions">
-    <button class="btn btn-primary" id="newProjectBtn">+ 새 프로젝트</button>
-    <a href="warehouse.html" class="btn btn-secondary" style="text-decoration:none;">🗂️ 썸네일 창고</a>
-    <a href="guide.html" class="btn btn-secondary" style="text-decoration:none;">📚 숏폼 강의</a>
-    <span style="flex:1;"></span>
-    <select id="projectTypeFilter" class="btn btn-secondary" style="cursor:pointer;padding:6px 10px;">
-      <option value="all">전체 유형</option>
-      <option value="longform">📝 롱폼</option>
-      <option value="shortform">🎬 숏폼</option>
-    </select>
-    <button class="btn btn-secondary" id="importZipBtn">ZIP 불러오기</button>
-    <button class="btn btn-secondary" id="exportAllBtn">전체 백업</button>
-    <input type="file" id="zipFileInput" accept=".zip" style="display:none">
-  </div>
-
-  <div class="home-section">
-    <div class="home-section-header">
-      <h2>내 프로젝트 <span id="projectsCount" style="color:var(--text-muted);font-weight:500;"></span></h2>
-    </div>
-    <div id="projectList" class="project-list"></div>
-    <div id="emptyState" class="empty-state" style="display:none;">
-      <p>아직 프로젝트가 없습니다.</p>
-      <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">
-        위의 <strong>+ 새 프로젝트</strong> 버튼을 눌러 시작하거나,<br>
-        이전에 내보낸 <strong>.zip</strong> 파일을 드롭해서 불러올 수 있습니다.
-      </p>
-    </div>
-  </div>
-</div>
-
-<!-- New project modal -->
-<div class="modal-overlay" id="newProjectModal">
-  <div class="modal" style="width:480px;">
-    <h3>새 프로젝트</h3>
-
-    <div style="margin-bottom:20px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;">유형</div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <label class="np-type-card" id="npTypeLongform">
-          <input type="radio" name="npType" value="longform" checked style="display:none;">
-          <span class="np-type-icon">📝</span>
-          <div>
-            <div style="font-weight:600;font-size:13px;">롱폼</div>
-            <div style="font-size:11px;color:var(--text-muted);">5~30분 · 4챕터</div>
-          </div>
-        </label>
-        <label class="np-type-card" id="npTypeShortform">
-          <input type="radio" name="npType" value="shortform" style="display:none;">
-          <span class="np-type-icon">🎬</span>
-          <div>
-            <div style="font-weight:600;font-size:13px;">숏폼</div>
-            <div style="font-size:11px;color:var(--text-muted);">15~90초 · 6챕터</div>
-          </div>
-        </label>
-      </div>
-    </div>
-
-    <div id="npModeSection" style="display:none;margin-bottom:20px;">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-bottom:10px;">모드</div>
-      <div style="display:flex;gap:8px;">
-        <label class="np-mode-card" id="npModePulling">
-          <input type="radio" name="npMode" value="pulling" checked style="display:none;">
-          <div style="font-weight:600;font-size:12px;">풀링</div>
-          <div style="font-size:11px;color:var(--text-muted);">정보 제공 · 트래픽</div>
-        </label>
-        <label class="np-mode-card" id="npModeKey">
-          <input type="radio" name="npMode" value="key" style="display:none;">
-          <div style="font-weight:600;font-size:12px;">키</div>
-          <div style="font-size:11px;color:var(--text-muted);">상품 · 서비스 판매</div>
-        </label>
-      </div>
-    </div>
-
-    <div style="margin-bottom:20px;">
-      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);display:block;margin-bottom:8px;">제목</label>
-      <input type="text" id="npTitleInput" placeholder="프로젝트 제목을 입력하세요" autocomplete="off">
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="npCancelBtn">취소</button>
-      <button class="btn btn-primary" id="npCreateBtn">만들기</button>
-    </div>
-  </div>
-</div>
-
-<!-- Help modal -->
-<div class="modal-overlay" id="helpModal">
-  <div class="modal" style="width:560px;">
-    <h3>youbox 사용 가이드</h3>
-    <div class="help-content">
-      <h4>워크플로우</h4>
-      <p>하나의 영상 프로젝트는 3개 챕터로 구성됩니다.</p>
-      <ul>
-        <li><strong>1. 기획</strong>: 벤치마킹 썸네일 수집 → 내 영상 제목 / 썸네일 타이틀 / 독자 / 목적 확정</li>
-        <li><strong>2. 원고 작성</strong>: 벤치마킹을 참고하며 내 스타일로 대본 작성 (도입 30초 강조)</li>
-        <li><strong>3. B-roll</strong>: 각 섹션에 촬영 태그/메모 추가</li>
-      </ul>
-      <p style="margin-top:8px;">1단계에서 정한 정보가 2, 3단계 상단에 <strong>항상 고정 표시</strong>되어 본질을 잃지 않게 합니다.</p>
-
-      <h4>데이터 저장</h4>
-      <ul>
-        <li>모든 작업은 <strong>브라우저 내부(IndexedDB + localStorage)</strong>에 자동 저장됩니다.</li>
-        <li><strong>ZIP 내보내기</strong>로 프로젝트를 백업하고, 다른 PC에서 ZIP 불러오기로 이어 작업할 수 있습니다.</li>
-        <li>이미지(썸네일)는 붙여넣기(Ctrl+V), 드래그 앤 드롭, 파일 선택 모두 지원합니다.</li>
-      </ul>
-
-      <h4>단축키</h4>
-      <ul>
-        <li><kbd>Ctrl+S</kbd> 임시저장 | <kbd>Ctrl+Z</kbd> 되돌리기</li>
-        <li><kbd>Ctrl+E</kbd> ZIP 내보내기 | <kbd>Ctrl+P</kbd> 대본 모드(텔레프롬프터)</li>
-        <li><kbd>Ctrl+1/2/3</kbd> 제목에서 섹션 레벨 변경</li>
-      </ul>
-    </div>
-    <div class="modal-actions" style="margin-top:16px;">
-      <button class="btn btn-secondary" id="helpCloseBtn">닫기</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  // Theme (standalone for home)
-  function getTheme() { return localStorage.getItem('broll-theme') || 'dark'; }
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    const icon = document.getElementById('themeIcon');
-    if (icon) icon.innerHTML = theme === 'dark' ? '&#9788;' : '&#9790;';
-    localStorage.setItem('broll-theme', theme);
-  }
-  function toggleTheme() { applyTheme(getTheme() === 'dark' ? 'light' : 'dark'); }
-  applyTheme(getTheme());
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str || '';
-    return div.innerHTML;
-  }
-</script>
-<script src="js/projects-db.js"></script>
-<script src="js/zip.js"></script>
-<script src="js/home.js"></script>
-<script src="js/nav.js"></script>
+<script src="app.js"></script>
+<script>renderIndex();</script>
 </body>
 </html>
